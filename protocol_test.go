@@ -6,9 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	. "github.com/hrntknr/claudecodeprotocol"
 	"github.com/hrntknr/claudecodeprotocol/utils"
 )
 
+// シンプルなテキスト応答の基本フロー
 func TestSimpleTextResponse(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.TextResponse("Hello!"),
@@ -21,15 +23,13 @@ func TestSimpleTextResponse(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"say hello"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Hello!"}]}}`,
-		`{"type":"result", "subtype":"success", "result":"Hello!"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("Hello!")),
+		MustJSON(NewMessageResultSuccess("Hello!")),
 	)
 }
 
-// TestToolUseBash verifies the message flow when the assistant uses the Bash tool once.
-// Expected: system → assistant (final text only) → result
-// Intermediate tool_use/tool_result messages are NOT emitted to stdout.
+// 単一のBashツール呼び出しフロー
 func TestToolUseBash(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: API tells CLI to run a Bash command
@@ -48,14 +48,13 @@ func TestToolUseBash(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"run echo tool-use-test-output"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"The command printed: tool-use-test-output"}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("The command printed: tool-use-test-output")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
-// TestToolUseMultiStep verifies the message flow with two sequential tool uses.
-// The API returns tool_use twice before returning the final text.
+// 2段階の連続ツール呼び出しフロー
 func TestToolUseMultiStep(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: First Bash tool use
@@ -79,9 +78,9 @@ func TestToolUseMultiStep(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"run two echo commands"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Both commands completed successfully."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("Both commands completed successfully.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -112,8 +111,7 @@ func withInit(responses ...[]utils.SSEEvent) [][]utils.SSEEvent {
 	return append(initResponses(), responses...)
 }
 
-// TestTextAndToolUseInSameResponse verifies the CLI when the API returns
-// both a text block and a tool_use block in a single response message.
+// テキストとツール呼び出しが同一レスポンスに含まれるケース
 func TestTextAndToolUseInSameResponse(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: text + tool_use in one response
@@ -135,14 +133,13 @@ func TestTextAndToolUseInSameResponse(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"check and run combined"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Done. The output was: combined-test"}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("Done. The output was: combined-test")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
-// TestParallelToolUse verifies the CLI when the API returns multiple tool_use blocks
-// in a single response (parallel tool calls).
+// 複数ツールの並列呼び出しフロー
 func TestParallelToolUse(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: two tool_use blocks in one response
@@ -175,14 +172,13 @@ func TestParallelToolUse(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"run two commands in parallel"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Both commands ran: parallel-one and parallel-two"}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("Both commands ran: parallel-one and parallel-two")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
-// TestMultiTurnConversation verifies that multiple send/read cycles work
-// within the same CLI session (multi-turn conversation).
+// 同一セッション内でのマルチターン会話
 func TestMultiTurnConversation(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		utils.TextResponse("First answer."),
@@ -197,21 +193,20 @@ func TestMultiTurnConversation(t *testing.T) {
 	// Turn 1
 	s.Send(`{"type":"user","message":{"role":"user","content":"first question"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"First answer."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("First answer.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Turn 2
 	s.Send(`{"type":"user","message":{"role":"user","content":"second question"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Second answer."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageAssistantText("Second answer.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
-// TestMaxTokensStopReason verifies CLI behavior when the API response
-// is truncated by the max_tokens limit (stop_reason: "max_tokens").
+// max_tokensで応答が打ち切られた場合の挙動
 func TestMaxTokensStopReason(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.MaxTokensTextResponse("This response was truncated because it hit the max"),
@@ -228,14 +223,13 @@ func TestMaxTokensStopReason(t *testing.T) {
 	// message about the max output token limit. Eventually it produces a
 	// result with subtype "success" but is_error true.
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text"}]}}`,
-		`{"type":"result", "subtype":"success", "is_error":true}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("")),
+		MustJSON(NewMessageResultSuccessIsError()),
 	)
 }
 
-// TestThinkingResponse verifies CLI behavior when the API returns
-// an extended-thinking block followed by a text block.
+// 拡張思考（extended thinking）ブロックを含む応答
 func TestThinkingResponse(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.ThinkingResponse(
@@ -254,10 +248,10 @@ func TestThinkingResponse(t *testing.T) {
 	// with content[0].type="thinking". Then the text block follows as another
 	// assistant message. Result contains only the text.
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"thinking","thinking":"Let me think about this step by step..."}]}}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"The answer is 42."}]}}`,
-		`{"type":"result", "subtype":"success", "result":"The answer is 42."}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantThinking("Let me think about this step by step...")),
+		MustJSON(NewMessageAssistantText("The answer is 42.")),
+		MustJSON(NewMessageResultSuccess("The answer is 42.")),
 	)
 }
 
@@ -265,7 +259,7 @@ func TestThinkingResponse(t *testing.T) {
 // Tool coverage
 // ---------------------------------------------------------------------------
 
-// TestToolUseRead verifies the Read tool by reading a temporary file.
+// Readツールによるファイル読み取り
 func TestToolUseRead(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.txt")
@@ -289,14 +283,13 @@ func TestToolUseRead(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"read the test file"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"The file contains: file-content-for-read-test"}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("The file contains: file-content-for-read-test")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
-// TestToolUseWrite verifies the Write tool by creating a new file
-// and checking that the file was actually created on disk.
+// Writeツールによるファイル作成
 func TestToolUseWrite(t *testing.T) {
 	tmpDir := t.TempDir()
 	targetFile := filepath.Join(tmpDir, "output.txt")
@@ -318,9 +311,9 @@ func TestToolUseWrite(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"write a file"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"File created successfully."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("File created successfully.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Verify the file was actually written to disk.
@@ -333,8 +326,7 @@ func TestToolUseWrite(t *testing.T) {
 	}
 }
 
-// TestToolUseEdit verifies the Edit tool by reading then editing a file.
-// Edit requires a prior Read in the conversation.
+// Editツールによるファイル編集
 func TestToolUseEdit(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "editable.txt")
@@ -364,9 +356,9 @@ func TestToolUseEdit(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"edit the file"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"File edited successfully."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("File edited successfully.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Verify the file was actually modified.
@@ -382,7 +374,7 @@ func TestToolUseEdit(t *testing.T) {
 	}
 }
 
-// TestToolUseGlob verifies the Glob tool for file pattern matching.
+// Globツールによるファイルパターンマッチ
 func TestToolUseGlob(t *testing.T) {
 	tmpDir := t.TempDir()
 	for _, name := range []string{"a.txt", "b.txt", "c.log"} {
@@ -407,13 +399,13 @@ func TestToolUseGlob(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"find txt files"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Found 2 text files."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("Found 2 text files.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
-// TestToolUseGrep verifies the Grep tool for content search.
+// Grepツールによるコンテンツ検索
 func TestToolUseGrep(t *testing.T) {
 	tmpDir := t.TempDir()
 	if err := os.WriteFile(
@@ -441,13 +433,13 @@ func TestToolUseGrep(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"search for target-pattern"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Found the pattern in searchable.txt."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("Found the pattern in searchable.txt.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
-// TestToolUseTodoWrite verifies the TodoWrite tool for task list management.
+// TodoWriteツールによるタスクリスト管理
 func TestToolUseTodoWrite(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: Create a todo list
@@ -468,13 +460,13 @@ func TestToolUseTodoWrite(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"create a todo list"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Created a todo list with 2 items."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("Created a todo list with 2 items.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
-// TestLongToolChain verifies a multi-step tool chain: Read → Edit → Bash.
+// Read → Edit → Bashの複数ステップツールチェイン
 func TestLongToolChain(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "chain.txt")
@@ -509,9 +501,9 @@ func TestLongToolChain(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"read, edit, and verify the file"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Chain complete: read, edited, and verified."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("Chain complete: read, edited, and verified.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Verify the file was actually modified through the chain.
@@ -528,8 +520,7 @@ func TestLongToolChain(t *testing.T) {
 // Advanced flows
 // ---------------------------------------------------------------------------
 
-// TestThinkingWithToolUse verifies the CLI when the API returns a thinking block
-// followed by a tool_use block, then a final text response.
+// 思考ブロック後にツール呼び出しが続くフロー
 func TestThinkingWithToolUse(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: thinking + tool_use
@@ -551,14 +542,13 @@ func TestThinkingWithToolUse(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"think and then run a command"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"After thinking and running the command: thinking-tool-test"}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("After thinking and running the command: thinking-tool-test")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
-// TestRequestRecording verifies the stub API's request recording capability
-// and observes the structure of what the CLI sends back after tool execution.
+// スタブAPIのリクエスト記録機能
 func TestRequestRecording(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: tool_use
@@ -577,9 +567,9 @@ func TestRequestRecording(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"run a recorded command"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Done."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("Done.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Verify that the stub recorded at least 5 requests:
@@ -612,8 +602,7 @@ func TestRequestRecording(t *testing.T) {
 // Additional tool coverage
 // ---------------------------------------------------------------------------
 
-// TestToolUseNotebookEdit verifies the NotebookEdit tool by inserting a cell
-// into a Jupyter notebook file.
+// NotebookEditツールによるJupyterノートブック編集
 func TestToolUseNotebookEdit(t *testing.T) {
 	tmpDir := t.TempDir()
 	nbFile := filepath.Join(tmpDir, "test.ipynb")
@@ -649,9 +638,9 @@ func TestToolUseNotebookEdit(t *testing.T) {
 
 	s.Send(`{"type":"user","message":{"role":"user","content":"add a cell to the notebook"}}`)
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Inserted a new cell into the notebook."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("Inserted a new cell into the notebook.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Verify the notebook was modified.
@@ -664,9 +653,7 @@ func TestToolUseNotebookEdit(t *testing.T) {
 	}
 }
 
-// TestToolUseAskUserQuestion verifies the CLI behavior when the API instructs
-// it to use AskUserQuestion. This tool requires user interaction, so we
-// observe how the CLI handles it in stream-json mode.
+// AskUserQuestionツールの非インタラクティブモードでの挙動
 func TestToolUseAskUserQuestion(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: AskUserQuestion tool_use
@@ -698,16 +685,15 @@ func TestToolUseAskUserQuestion(t *testing.T) {
 	// (content "Answer questions?"). The API then returns the final text.
 	// The result includes a permission_denials array listing the denied tool.
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"tool_use","name":"AskUserQuestion"}]}}`,
-		`{"type":"user", "message":{"content":[{"type":"tool_result","is_error":true}]}}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"You chose Go. Let me proceed with Go."}]}}`,
-		`{"type":"result", "subtype":"success", "permission_denials":[{"tool_name":"AskUserQuestion"}]}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantToolUse("AskUserQuestion")),
+		MustJSON(NewMessageUserToolResultError()),
+		MustJSON(NewMessageAssistantText("You chose Go. Let me proceed with Go.")),
+		MustJSON(NewMessageResultSuccessWithDenials(PermissionDenial{ToolName: "AskUserQuestion"})),
 	)
 }
 
-// TestToolUseEnterPlanMode verifies the CLI behavior when the API instructs
-// it to use EnterPlanMode.
+// EnterPlanModeツールによるプランモード遷移
 func TestToolUseEnterPlanMode(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: EnterPlanMode tool_use
@@ -726,19 +712,16 @@ func TestToolUseEnterPlanMode(t *testing.T) {
 	// then a system status message with permissionMode:"plan", then the
 	// user tool_result with plan mode instructions, then the final text.
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"tool_use","name":"EnterPlanMode"}]}}`,
-		`{"type":"system", "subtype":"status", "permissionMode":"plan"}`,
-		`{"type":"user", "message":{"content":[{"type":"tool_result"}]}}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"I have entered plan mode. Let me explore the codebase."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantToolUse("EnterPlanMode")),
+		MustJSON(NewMessageSystemStatus("plan")),
+		MustJSON(NewMessageUserToolResult()),
+		MustJSON(NewMessageAssistantText("I have entered plan mode. Let me explore the codebase.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
-// TestToolUseWebFetch verifies the CLI behavior when the API instructs it
-// to use WebFetch. A local static page is served by the stub for fetching.
-// Note: WebFetch internally makes an additional haiku API call to process
-// the fetched content, which consumes extra stub responses.
+// WebFetchツールのURL取得挙動
 func TestToolUseWebFetch(t *testing.T) {
 	stub := &utils.StubAPIServer{
 		StaticPages: map[string]string{
@@ -785,10 +768,10 @@ func TestToolUseWebFetch(t *testing.T) {
 	// a user tool_result with is_error:true containing the SSL error.
 	// The API then returns the next response as final text.
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"tool_use","name":"WebFetch"}]}}`,
-		`{"type":"user", "message":{"content":[{"type":"tool_result","is_error":true}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantToolUse("WebFetch")),
+		MustJSON(NewMessageUserToolResultError()),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -796,8 +779,7 @@ func TestToolUseWebFetch(t *testing.T) {
 // Error handling flows
 // ---------------------------------------------------------------------------
 
-// TestToolError verifies the CLI behavior when a tool execution fails.
-// The Read tool is called with a non-existent file path.
+// ツール実行失敗時のエラーハンドリング
 func TestToolError(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: Read a non-existent file
@@ -818,13 +800,13 @@ func TestToolError(t *testing.T) {
 	// The API receives the error as a tool_result with is_error=true,
 	// then returns a normal text response.
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"The file does not exist. Let me handle this error."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("The file does not exist. Let me handle this error.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
-// TestAPIError verifies the CLI behavior when the API returns an SSE error event.
+// APIレベルのSSEエラーイベント受信時の挙動
 func TestAPIError(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// All requests (including init) get the same error.
@@ -843,8 +825,8 @@ func TestAPIError(t *testing.T) {
 	// containing the error details. No assistant messages are emitted.
 	output := s.Read()
 	utils.AssertOutput(t, output,
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"result", "subtype":"error_during_execution"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageResultErrorDuringExecution()),
 	)
 }
 
@@ -852,8 +834,7 @@ func TestAPIError(t *testing.T) {
 // Additional content block patterns
 // ---------------------------------------------------------------------------
 
-// TestMultipleTextBlocks verifies the CLI behavior when the API returns
-// a response with multiple text content blocks.
+// 複数テキストブロックを含む応答の出力形式
 func TestMultipleTextBlocks(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.MultiTextResponse("First paragraph.", "Second paragraph."),
@@ -868,10 +849,10 @@ func TestMultipleTextBlocks(t *testing.T) {
 	// Observed: Each text content block is emitted as a separate assistant
 	// message. The result contains only the LAST text block's content.
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"First paragraph."}]}}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Second paragraph."}]}}`,
-		`{"type":"result", "subtype":"success", "result":"Second paragraph."}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantText("First paragraph.")),
+		MustJSON(NewMessageAssistantText("Second paragraph.")),
+		MustJSON(NewMessageResultSuccess("Second paragraph.")),
 	)
 }
 
@@ -888,9 +869,7 @@ func agentTeamEnv() []string {
 	return []string{"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1"}
 }
 
-// TestToolUseTeamCreate verifies the CLI behavior when the API instructs it
-// to use TeamCreate. TeamCreate creates team config and task directories
-// at ~/.claude/teams/{name}/ and ~/.claude/tasks/{name}/.
+// TeamCreateツールによるチーム作成
 func TestToolUseTeamCreate(t *testing.T) {
 	teamName := "proto-test-team-create"
 
@@ -914,11 +893,11 @@ func TestToolUseTeamCreate(t *testing.T) {
 	// JSON with team_name, team_file_path, and lead_agent_id. The tool_result
 	// is NOT an error (is_error is absent). Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"tool_use","name":"TeamCreate"}]}}`,
-		`{"type":"user", "message":{"content":[{"type":"tool_result"}]}}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Team created."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantToolUse("TeamCreate")),
+		MustJSON(NewMessageUserToolResult()),
+		MustJSON(NewMessageAssistantText("Team created.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Clean up team files if created.
@@ -927,9 +906,7 @@ func TestToolUseTeamCreate(t *testing.T) {
 	os.RemoveAll(filepath.Join(home, ".claude", "tasks", teamName))
 }
 
-// TestToolUseTeamDelete verifies the CLI behavior when the API instructs it
-// to use TeamDelete. Without an active team, this should produce an error
-// in the tool_result.
+// TeamDeleteツールのアクティブチームなし時の挙動
 func TestToolUseTeamDelete(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: TeamDelete (no active team)
@@ -948,16 +925,15 @@ func TestToolUseTeamDelete(t *testing.T) {
 	// a tool_result with success:true and message "No team name found, nothing
 	// to clean up". Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"tool_use","name":"TeamDelete"}]}}`,
-		`{"type":"user", "message":{"content":[{"type":"tool_result"}]}}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Handled team deletion."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantToolUse("TeamDelete")),
+		MustJSON(NewMessageUserToolResult()),
+		MustJSON(NewMessageAssistantText("Handled team deletion.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
-// TestToolUseSendMessage verifies the CLI behavior when the API instructs it
-// to use SendMessage. Without a team context, this should produce an error.
+// SendMessageツールのチームコンテキストなし時の挙動
 func TestToolUseSendMessage(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: SendMessage (no team context)
@@ -982,17 +958,15 @@ func TestToolUseSendMessage(t *testing.T) {
 	// (sender: "team-lead", target: "@nonexistent-agent"). The message is
 	// written to a file-based inbox regardless. Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"tool_use","name":"SendMessage"}]}}`,
-		`{"type":"user", "message":{"content":[{"type":"tool_result"}]}}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Handled send message."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantToolUse("SendMessage")),
+		MustJSON(NewMessageUserToolResult()),
+		MustJSON(NewMessageAssistantText("Handled send message.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
-// TestToolUseTaskSpawnTeammate verifies the CLI behavior when the API instructs
-// it to use the Task tool with team_name parameter to spawn a teammate.
-// The teammate is a separate CLI process that also hits the stub API.
+// Taskツールによるチームメイトのスポーン（生成）
 func TestToolUseTaskSpawnTeammate(t *testing.T) {
 	teamName := "proto-test-task-teammate"
 
@@ -1030,12 +1004,12 @@ func TestToolUseTaskSpawnTeammate(t *testing.T) {
 	// including agent_id, name, team_name, color, model. The teammate is spawned
 	// as a background process (in-process mode). Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"tool_use","name":"TeamCreate"}]}}`,
-		`{"type":"user", "message":{"content":[{"type":"tool_result"}]}}`,
-		`{"type":"assistant", "message":{"content":[{"type":"tool_use","name":"Task"}]}}`,
-		`{"type":"user", "message":{"content":[{"type":"tool_result"}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantToolUse("TeamCreate")),
+		MustJSON(NewMessageUserToolResult()),
+		MustJSON(NewMessageAssistantToolUse("Task")),
+		MustJSON(NewMessageUserToolResult()),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Clean up team files.
@@ -1044,8 +1018,7 @@ func TestToolUseTaskSpawnTeammate(t *testing.T) {
 	os.RemoveAll(filepath.Join(home, ".claude", "tasks", teamName))
 }
 
-// TestAgentTeamLifecycle verifies a full agent team lifecycle in a multi-turn
-// session: TeamCreate → SendMessage (broadcast) → TeamDelete.
+// エージェントチームのライフサイクル全体（作成→削除）をマルチターンで
 func TestAgentTeamLifecycle(t *testing.T) {
 	teamName := "proto-test-lifecycle"
 
@@ -1074,11 +1047,11 @@ func TestAgentTeamLifecycle(t *testing.T) {
 	s.Send(`{"type":"user","message":{"role":"user","content":"create a team called ` + teamName + `"}}`)
 	// Observed: TeamCreate emits tool_use → tool_result → final text → result.
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"system", "subtype":"init"}`,
-		`{"type":"assistant", "message":{"content":[{"type":"tool_use","name":"TeamCreate"}]}}`,
-		`{"type":"user", "message":{"content":[{"type":"tool_result"}]}}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Team created successfully."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageSystemInit()),
+		MustJSON(NewMessageAssistantToolUse("TeamCreate")),
+		MustJSON(NewMessageUserToolResult()),
+		MustJSON(NewMessageAssistantText("Team created successfully.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Turn 2: Delete team
@@ -1086,10 +1059,10 @@ func TestAgentTeamLifecycle(t *testing.T) {
 	// Observed: TeamDelete in second turn emits init again (CLIのsession状態のリフレッシュ),
 	// then tool_use → tool_result with success:true and cleanup message → final text → result.
 	utils.AssertOutput(t, s.Read(),
-		`{"type":"assistant", "message":{"content":[{"type":"tool_use","name":"TeamDelete"}]}}`,
-		`{"type":"user", "message":{"content":[{"type":"tool_result"}]}}`,
-		`{"type":"assistant", "message":{"content":[{"type":"text","text":"Team deleted."}]}}`,
-		`{"type":"result", "subtype":"success"}`,
+		MustJSON(NewMessageAssistantToolUse("TeamDelete")),
+		MustJSON(NewMessageUserToolResult()),
+		MustJSON(NewMessageAssistantText("Team deleted.")),
+		MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Clean up in case TeamDelete didn't work.

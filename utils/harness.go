@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"syscall"
 	"testing"
+	"time"
 )
 
 // Session manages an interactive CLI process for multi-turn testing.
@@ -21,6 +23,13 @@ type Session struct {
 // NewSession starts a Claude Code CLI process connected to the given stub API.
 func NewSession(t *testing.T, baseURL string) *Session {
 	t.Helper()
+	return NewSessionWithEnv(t, baseURL, nil)
+}
+
+// NewSessionWithEnv starts a Claude Code CLI process with additional environment variables.
+// extraEnv is a list of "KEY=VALUE" strings appended to the process environment.
+func NewSessionWithEnv(t *testing.T, baseURL string, extraEnv []string) *Session {
+	t.Helper()
 
 	cmd := exec.Command("claude",
 		"--input-format", "stream-json",
@@ -32,6 +41,10 @@ func NewSession(t *testing.T, baseURL string) *Session {
 	cmd.Env = append(cmd.Environ(),
 		"ANTHROPIC_BASE_URL="+baseURL,
 	)
+	cmd.Env = append(cmd.Env, extraEnv...)
+	// Create a new process group so we can kill the entire group
+	// (including any teammate subprocesses) during cleanup.
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -100,10 +113,24 @@ func (s *Session) Read() []json.RawMessage {
 }
 
 // Close closes stdin and waits for the CLI process to exit.
+// If the process does not exit within 10 seconds (e.g. due to running
+// teammate subprocesses), it is killed via SIGKILL to the process group.
 func (s *Session) Close() {
 	s.stdin.Close()
-	if err := s.cmd.Wait(); err != nil {
-		s.t.Logf("CLI exit: %v (stderr: %s)", err, s.stderr.String())
+
+	done := make(chan error, 1)
+	go func() { done <- s.cmd.Wait() }()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			s.t.Logf("CLI exit: %v (stderr: %s)", err, s.stderr.String())
+		}
+	case <-time.After(10 * time.Second):
+		s.t.Logf("CLI did not exit within 10s, killing process group")
+		// Kill the entire process group to clean up child processes (teammates).
+		_ = syscall.Kill(-s.cmd.Process.Pid, syscall.SIGKILL)
+		<-done
 	}
 }
 

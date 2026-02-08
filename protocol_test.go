@@ -10,6 +10,8 @@ import (
 	"github.com/hrntknr/claudecodeprotocol/utils"
 )
 
+const agentTeamEnv = "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1"
+
 // シンプルなテキスト応答の基本フロー
 func TestSimpleTextResponse(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
@@ -21,11 +23,11 @@ func TestSimpleTextResponse(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("say hello")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "say hello"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("Hello!")),
-		utils.MustJSON(NewMessageResultSuccess("Hello!")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Hello!"}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Hello!", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -46,11 +48,11 @@ func TestToolUseBash(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("run echo tool-use-test-output")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "run echo tool-use-test-output"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("The command printed: tool-use-test-output")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "The command printed: tool-use-test-output"}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "The command printed: tool-use-test-output", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -76,11 +78,11 @@ func TestToolUseMultiStep(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("run two echo commands")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "run two echo commands"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("Both commands completed successfully.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Both commands completed successfully."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Both commands completed successfully.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -89,24 +91,23 @@ func TestToolUseMultiStep(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 // NOTE ON INIT REQUESTS:
-// The CLI makes 3 internal haiku-model requests on startup before the main
-// opus request: (1) quota check, (2) file-change detection, (3) token count.
-// Tests that need tools to actually execute must prepend 3 dummy TextResponse
+// The CLI makes 2 internal haiku-model requests on startup before the main
+// opus request: (1) quota check, (2) file-change detection.
+// Tests that need tools to actually execute must prepend 2 dummy TextResponse
 // entries so those init requests don't consume the intended tool responses.
 // Tests with a single response (or where only the last matters) work without
 // dummies because the stub repeats the last response for extra requests.
 
-// initResponses returns 3 dummy TextResponse entries to absorb the CLI's
+// initResponses returns 2 dummy TextResponse entries to absorb the CLI's
 // haiku init requests.
 func initResponses() [][]utils.SSEEvent {
 	return [][]utils.SSEEvent{
 		utils.TextResponse("ok"),
 		utils.TextResponse("ok"),
-		utils.TextResponse("ok"),
 	}
 }
 
-// withInit prepends 3 init-absorbing dummy responses to the given responses.
+// withInit prepends 2 init-absorbing dummy responses to the given responses.
 func withInit(responses ...[]utils.SSEEvent) [][]utils.SSEEvent {
 	return append(initResponses(), responses...)
 }
@@ -131,11 +132,11 @@ func TestTextAndToolUseInSameResponse(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("check and run combined")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "check and run combined"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("Done. The output was: combined-test")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Done. The output was: combined-test"}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Done. The output was: combined-test", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -170,11 +171,11 @@ func TestParallelToolUse(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("run two commands in parallel")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "run two commands in parallel"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("Both commands ran: parallel-one and parallel-two")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Both commands ran: parallel-one and parallel-two"}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Both commands ran: parallel-one and parallel-two", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -191,18 +192,18 @@ func TestMultiTurnConversation(t *testing.T) {
 	defer s.Close()
 
 	// Turn 1
-	s.Send(utils.MustJSON(NewMessageUserText("first question")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "first question"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("First answer.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "First answer."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "First answer.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 
 	// Turn 2
-	s.Send(utils.MustJSON(NewMessageUserText("second question")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "second question"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageAssistantText("Second answer.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Second answer."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Second answer.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -217,15 +218,15 @@ func TestMaxTokensStopReason(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("generate a very long response")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "generate a very long response"}}))
 	// Observed: The CLI retries the max_tokens response multiple times,
 	// emitting the truncated text alternating with a synthetic "API Error"
 	// message about the max output token limit. Eventually it produces a
 	// result with subtype "success" but is_error true.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("")),
-		utils.MustJSON(NewMessageResultSuccessIsError()),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: utils.AnyString}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: true, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: utils.AnyString, StopReason: utils.AnyString, SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -243,15 +244,15 @@ func TestThinkingResponse(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("what is the answer?")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "what is the answer?"}}))
 	// Observed: Thinking blocks ARE emitted as a separate assistant message
 	// with content[0].type="thinking". Then the text block follows as another
 	// assistant message. Result contains only the text.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantThinking("Let me think about this step by step...")),
-		utils.MustJSON(NewMessageAssistantText("The answer is 42.")),
-		utils.MustJSON(NewMessageResultSuccess("The answer is 42.")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{ThinkingBlock{ContentBlockBase: ContentBlockBase{Type: BlockThinking}, Thinking: "Let me think about this step by step...", Signature: ""}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "The answer is 42."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "The answer is 42.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -281,11 +282,11 @@ func TestToolUseRead(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("read the test file")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "read the test file"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("The file contains: file-content-for-read-test")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "The file contains: file-content-for-read-test"}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "The file contains: file-content-for-read-test", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -309,11 +310,11 @@ func TestToolUseWrite(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("write a file")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "write a file"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("File created successfully.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "File created successfully."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "File created successfully.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 
 	// Verify the file was actually written to disk.
@@ -354,11 +355,11 @@ func TestToolUseEdit(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("edit the file")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "edit the file"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("File edited successfully.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "File edited successfully."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "File edited successfully.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 
 	// Verify the file was actually modified.
@@ -397,11 +398,11 @@ func TestToolUseGlob(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("find txt files")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "find txt files"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("Found 2 text files.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Found 2 text files."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Found 2 text files.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -431,11 +432,11 @@ func TestToolUseGrep(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("search for target-pattern")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "search for target-pattern"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("Found the pattern in searchable.txt.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Found the pattern in searchable.txt."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Found the pattern in searchable.txt.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -458,11 +459,11 @@ func TestToolUseTodoWrite(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("create a todo list")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "create a todo list"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("Created a todo list with 2 items.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Created a todo list with 2 items."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Created a todo list with 2 items.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -499,11 +500,11 @@ func TestLongToolChain(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("read, edit, and verify the file")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "read, edit, and verify the file"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("Chain complete: read, edited, and verified.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Chain complete: read, edited, and verified."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Chain complete: read, edited, and verified.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 
 	// Verify the file was actually modified through the chain.
@@ -540,11 +541,11 @@ func TestThinkingWithToolUse(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("think and then run a command")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "think and then run a command"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("After thinking and running the command: thinking-tool-test")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "After thinking and running the command: thinking-tool-test"}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "After thinking and running the command: thinking-tool-test", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -565,22 +566,22 @@ func TestRequestRecording(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("run a recorded command")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "run a recorded command"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("Done.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Done."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Done.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 
-	// Verify that the stub recorded at least 5 requests:
-	// 3 haiku init + 1 opus user message (tool_use) + 1 opus follow-up (tool_result).
+	// Verify that the stub recorded at least 4 requests:
+	// 2 haiku init + 1 opus user message (tool_use) + 1 opus follow-up (tool_result).
 	reqs := stub.Requests()
-	if len(reqs) < 5 {
-		t.Fatalf("expected at least 5 recorded requests, got %d", len(reqs))
+	if len(reqs) < 4 {
+		t.Fatalf("expected at least 4 recorded requests, got %d", len(reqs))
 	}
 
-	// The 5th request (index 4) should contain messages with a tool_result.
-	body := reqs[4].Body
+	// The 4th request (index 3) should contain messages with a tool_result.
+	body := reqs[3].Body
 	messages, ok := body["messages"]
 	if !ok {
 		t.Fatal("follow-up request missing 'messages' field")
@@ -636,11 +637,11 @@ func TestToolUseNotebookEdit(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("add a cell to the notebook")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "add a cell to the notebook"}}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("Inserted a new cell into the notebook.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Inserted a new cell into the notebook."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Inserted a new cell into the notebook.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 
 	// Verify the notebook was modified.
@@ -679,17 +680,17 @@ func TestToolUseAskUserQuestion(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("ask me a question")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "ask me a question"}}))
 	// Observed: In non-interactive stream-json mode, AskUserQuestion is emitted
 	// as an assistant tool_use, then a user tool_result with is_error:true
 	// (content "Answer questions?"). The API then returns the final text.
 	// The result includes a permission_denials array listing the denied tool.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantToolUse("AskUserQuestion")),
-		utils.MustJSON(NewMessageUserToolResultError()),
-		utils.MustJSON(NewMessageAssistantText("You chose Go. Let me proceed with Go.")),
-		utils.MustJSON(NewMessageResultSuccessWithDenials(PermissionDenial{ToolName: "AskUserQuestion"})),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{ToolUseBlock{ContentBlockBase: ContentBlockBase{Type: BlockToolUse}, ID: utils.AnyString, Name: "AskUserQuestion", Input: utils.AnyMap}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(UserToolResultMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserToolResultBody{Role: RoleUser, Content: []ToolResultBlock{{ContentBlockBase: ContentBlockBase{Type: BlockToolResult}, ToolUseID: utils.AnyString, Content: utils.AnyString, IsError: true}}}, SessionID: utils.AnyString, UUID: utils.AnyString, ToolUseResult: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "You chose Go. Let me proceed with Go."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "You chose Go. Let me proceed with Go.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{{ToolName: "AskUserQuestion", ToolUseID: utils.AnyString, ToolInput: utils.AnyMap}}, UUID: utils.AnyString}),
 	)
 }
 
@@ -707,17 +708,17 @@ func TestToolUseEnterPlanMode(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("plan the implementation")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "plan the implementation"}}))
 	// Observed: EnterPlanMode emits the tool_use as an assistant message,
 	// then a system status message with permissionMode:"plan", then the
 	// user tool_result with plan mode instructions, then the final text.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantToolUse("EnterPlanMode")),
-		utils.MustJSON(NewMessageSystemStatus("plan")),
-		utils.MustJSON(NewMessageUserToolResult()),
-		utils.MustJSON(NewMessageAssistantText("I have entered plan mode. Let me explore the codebase.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{ToolUseBlock{ContentBlockBase: ContentBlockBase{Type: BlockToolUse}, ID: utils.AnyString, Name: "EnterPlanMode", Input: utils.AnyMap}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(SystemStatusMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeStatus}, PermissionMode: PermissionPlan, UUID: utils.AnyString, SessionID: utils.AnyString}),
+		utils.MustJSON(UserToolResultMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserToolResultBody{Role: RoleUser, Content: []ToolResultBlock{{ContentBlockBase: ContentBlockBase{Type: BlockToolResult}, ToolUseID: utils.AnyString, Content: utils.AnyString}}}, SessionID: utils.AnyString, UUID: utils.AnyString, ToolUseResult: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "I have entered plan mode. Let me explore the codebase."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "I have entered plan mode. Let me explore the codebase.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -762,16 +763,16 @@ func TestToolUseWebFetch(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("fetch the test page")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "fetch the test page"}}))
 	// Observed: WebFetch upgrades HTTP to HTTPS, causing an SSL error when
 	// hitting the plain HTTP stub server. The CLI emits the tool_use, then
 	// a user tool_result with is_error:true containing the SSL error.
 	// The API then returns the next response as final text.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantToolUse("WebFetch")),
-		utils.MustJSON(NewMessageUserToolResultError()),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{ToolUseBlock{ContentBlockBase: ContentBlockBase{Type: BlockToolUse}, ID: utils.AnyString, Name: "WebFetch", Input: utils.AnyMap}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(UserToolResultMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserToolResultBody{Role: RoleUser, Content: []ToolResultBlock{{ContentBlockBase: ContentBlockBase{Type: BlockToolResult}, ToolUseID: utils.AnyString, Content: utils.AnyString, IsError: true}}}, SessionID: utils.AnyString, UUID: utils.AnyString, ToolUseResult: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: utils.AnyString, SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -795,14 +796,14 @@ func TestToolError(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("read a missing file")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "read a missing file"}}))
 	// The CLI should handle the tool error gracefully.
 	// The API receives the error as a tool_result with is_error=true,
 	// then returns a normal text response.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("The file does not exist. Let me handle this error.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "The file does not exist. Let me handle this error."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "The file does not exist. Let me handle this error.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -819,14 +820,13 @@ func TestAPIError(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("trigger an error")))
-	// Observed: When the API returns an SSE error event, the CLI emits a
-	// result with subtype "error_during_execution" and an "errors" array
-	// containing the error details. No assistant messages are emitted.
-	output := s.Read()
-	utils.AssertOutput(t, output,
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageResultErrorDuringExecution()),
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "trigger an error"}}))
+	// Observed: When the API returns an error, the CLI emits a result with
+	// subtype "error_during_execution" and an "errors" array containing error
+	// message strings (full stack traces). No assistant messages are emitted.
+	utils.AssertOutput(t, s.Read(),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(ResultErrorMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeErrorDuringExecution}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString, Errors: utils.AnyStringSlice}),
 	)
 }
 
@@ -845,14 +845,14 @@ func TestMultipleTextBlocks(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("write two paragraphs")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "write two paragraphs"}}))
 	// Observed: Each text content block is emitted as a separate assistant
 	// message. The result contains only the LAST text block's content.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantText("First paragraph.")),
-		utils.MustJSON(NewMessageAssistantText("Second paragraph.")),
-		utils.MustJSON(NewMessageResultSuccess("Second paragraph.")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "First paragraph."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Second paragraph."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Second paragraph.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -863,11 +863,6 @@ func TestMultipleTextBlocks(t *testing.T) {
 // v2.1.32). It allows a lead session to spawn teammate processes that share
 // a task list and communicate via file-based inboxes.
 // Enabled via CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1.
-
-// agentTeamEnv returns the environment variable to enable agent teams.
-func agentTeamEnv() []string {
-	return []string{"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1"}
-}
 
 // TeamCreateツールによるチーム作成
 func TestToolUseTeamCreate(t *testing.T) {
@@ -885,19 +880,19 @@ func TestToolUseTeamCreate(t *testing.T) {
 	stub.Start()
 	defer stub.Close()
 
-	s := utils.NewSessionWithEnv(t, stub.URL(), agentTeamEnv())
+	s := utils.NewSessionWithEnv(t, stub.URL(), []string{agentTeamEnv})
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("create a team")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "create a team"}}))
 	// Observed: TeamCreate emits the tool_use, then a tool_result containing
 	// JSON with team_name, team_file_path, and lead_agent_id. The tool_result
 	// is NOT an error (is_error is absent). Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantToolUse("TeamCreate")),
-		utils.MustJSON(NewMessageUserToolResult()),
-		utils.MustJSON(NewMessageAssistantText("Team created.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{ToolUseBlock{ContentBlockBase: ContentBlockBase{Type: BlockToolUse}, ID: utils.AnyString, Name: "TeamCreate", Input: utils.AnyMap}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(UserToolResultMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserToolResultBody{Role: RoleUser, Content: []ToolResultBlock{{ContentBlockBase: ContentBlockBase{Type: BlockToolResult}, ToolUseID: utils.AnyString, Content: utils.AnyString}}}, SessionID: utils.AnyString, UUID: utils.AnyString, ToolUseResult: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Team created."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Team created.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 
 	// Clean up team files if created.
@@ -917,19 +912,19 @@ func TestToolUseTeamDelete(t *testing.T) {
 	stub.Start()
 	defer stub.Close()
 
-	s := utils.NewSessionWithEnv(t, stub.URL(), agentTeamEnv())
+	s := utils.NewSessionWithEnv(t, stub.URL(), []string{agentTeamEnv})
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("delete the team")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "delete the team"}}))
 	// Observed: TeamDelete without an active team does NOT error. It returns
 	// a tool_result with success:true and message "No team name found, nothing
 	// to clean up". Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantToolUse("TeamDelete")),
-		utils.MustJSON(NewMessageUserToolResult()),
-		utils.MustJSON(NewMessageAssistantText("Handled team deletion.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{ToolUseBlock{ContentBlockBase: ContentBlockBase{Type: BlockToolUse}, ID: utils.AnyString, Name: "TeamDelete", Input: utils.AnyMap}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(UserToolResultMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserToolResultBody{Role: RoleUser, Content: []ToolResultBlock{{ContentBlockBase: ContentBlockBase{Type: BlockToolResult}, ToolUseID: utils.AnyString, Content: utils.AnyString}}}, SessionID: utils.AnyString, UUID: utils.AnyString, ToolUseResult: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Handled team deletion."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Handled team deletion.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -949,20 +944,20 @@ func TestToolUseSendMessage(t *testing.T) {
 	stub.Start()
 	defer stub.Close()
 
-	s := utils.NewSessionWithEnv(t, stub.URL(), agentTeamEnv())
+	s := utils.NewSessionWithEnv(t, stub.URL(), []string{agentTeamEnv})
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("send a message")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "send a message"}}))
 	// Observed: SendMessage even without a team context does NOT error.
 	// It returns a tool_result with success:true containing routing info
 	// (sender: "team-lead", target: "@nonexistent-agent"). The message is
 	// written to a file-based inbox regardless. Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantToolUse("SendMessage")),
-		utils.MustJSON(NewMessageUserToolResult()),
-		utils.MustJSON(NewMessageAssistantText("Handled send message.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{ToolUseBlock{ContentBlockBase: ContentBlockBase{Type: BlockToolUse}, ID: utils.AnyString, Name: "SendMessage", Input: utils.AnyMap}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(UserToolResultMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserToolResultBody{Role: RoleUser, Content: []ToolResultBlock{{ContentBlockBase: ContentBlockBase{Type: BlockToolResult}, ToolUseID: utils.AnyString, Content: utils.AnyString}}}, SessionID: utils.AnyString, UUID: utils.AnyString, ToolUseResult: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Handled send message."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Handled send message.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 }
 
@@ -995,21 +990,21 @@ func TestToolUseTaskSpawnTeammate(t *testing.T) {
 	stub.Start()
 	defer stub.Close()
 
-	s := utils.NewSessionWithEnv(t, stub.URL(), agentTeamEnv())
+	s := utils.NewSessionWithEnv(t, stub.URL(), []string{agentTeamEnv})
 	defer s.Close()
 
-	s.Send(utils.MustJSON(NewMessageUserText("create team and spawn a teammate")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "create team and spawn a teammate"}}))
 	// Observed: TeamCreate tool_result → Task tool_use → Task tool_result.
 	// The Task tool_result contains status "teammate_spawned" with agent details
 	// including agent_id, name, team_name, color, model. The teammate is spawned
 	// as a background process (in-process mode). Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantToolUse("TeamCreate")),
-		utils.MustJSON(NewMessageUserToolResult()),
-		utils.MustJSON(NewMessageAssistantToolUse("Task")),
-		utils.MustJSON(NewMessageUserToolResult()),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{ToolUseBlock{ContentBlockBase: ContentBlockBase{Type: BlockToolUse}, ID: utils.AnyString, Name: "TeamCreate", Input: utils.AnyMap}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(UserToolResultMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserToolResultBody{Role: RoleUser, Content: []ToolResultBlock{{ContentBlockBase: ContentBlockBase{Type: BlockToolResult}, ToolUseID: utils.AnyString, Content: utils.AnyString}}}, SessionID: utils.AnyString, UUID: utils.AnyString, ToolUseResult: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{ToolUseBlock{ContentBlockBase: ContentBlockBase{Type: BlockToolUse}, ID: utils.AnyString, Name: "Task", Input: utils.AnyMap}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(UserToolResultMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserToolResultBody{Role: RoleUser, Content: []ToolResultBlock{{ContentBlockBase: ContentBlockBase{Type: BlockToolResult}, ToolUseID: utils.AnyString, Content: utils.AnyString}}}, SessionID: utils.AnyString, UUID: utils.AnyString, ToolUseResult: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: utils.AnyString, SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 
 	// Clean up team files.
@@ -1040,29 +1035,29 @@ func TestAgentTeamLifecycle(t *testing.T) {
 	stub.Start()
 	defer stub.Close()
 
-	s := utils.NewSessionWithEnv(t, stub.URL(), agentTeamEnv())
+	s := utils.NewSessionWithEnv(t, stub.URL(), []string{agentTeamEnv})
 	defer s.Close()
 
 	// Turn 1: Create team
-	s.Send(utils.MustJSON(NewMessageUserText("create a team called " + teamName)))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "create a team called proto-test-lifecycle"}}))
 	// Observed: TeamCreate emits tool_use → tool_result → final text → result.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageSystemInit()),
-		utils.MustJSON(NewMessageAssistantToolUse("TeamCreate")),
-		utils.MustJSON(NewMessageUserToolResult()),
-		utils.MustJSON(NewMessageAssistantText("Team created successfully.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(SystemInitMessage{MessageBase: MessageBase{Type: TypeSystem, Subtype: SubtypeInit}, CWD: utils.AnyString, SessionID: utils.AnyString, Tools: utils.AnyStringSlice, MCPServers: utils.AnyStringSlice, Model: utils.AnyString, PermissionMode: PermissionBypassPermissions, SlashCommands: utils.AnyStringSlice, APIKeySource: utils.AnyString, ClaudeCodeVersion: utils.AnyString, OutputStyle: utils.AnyString, Agents: utils.AnyStringSlice, Skills: utils.AnyStringSlice, Plugins: utils.AnyStringSlice, UUID: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{ToolUseBlock{ContentBlockBase: ContentBlockBase{Type: BlockToolUse}, ID: utils.AnyString, Name: "TeamCreate", Input: utils.AnyMap}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(UserToolResultMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserToolResultBody{Role: RoleUser, Content: []ToolResultBlock{{ContentBlockBase: ContentBlockBase{Type: BlockToolResult}, ToolUseID: utils.AnyString, Content: utils.AnyString}}}, SessionID: utils.AnyString, UUID: utils.AnyString, ToolUseResult: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Team created successfully."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Team created successfully.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 
 	// Turn 2: Delete team
-	s.Send(utils.MustJSON(NewMessageUserText("now delete the team")))
+	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "now delete the team"}}))
 	// Observed: TeamDelete in second turn emits init again (CLIのsession状態のリフレッシュ),
 	// then tool_use → tool_result with success:true and cleanup message → final text → result.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(NewMessageAssistantToolUse("TeamDelete")),
-		utils.MustJSON(NewMessageUserToolResult()),
-		utils.MustJSON(NewMessageAssistantText("Team deleted.")),
-		utils.MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{ToolUseBlock{ContentBlockBase: ContentBlockBase{Type: BlockToolUse}, ID: utils.AnyString, Name: "TeamDelete", Input: utils.AnyMap}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(UserToolResultMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserToolResultBody{Role: RoleUser, Content: []ToolResultBlock{{ContentBlockBase: ContentBlockBase{Type: BlockToolResult}, ToolUseID: utils.AnyString, Content: utils.AnyString}}}, SessionID: utils.AnyString, UUID: utils.AnyString, ToolUseResult: utils.AnyString}),
+		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Team deleted."}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),
+		utils.MustJSON(ResultSuccessMessage{MessageBase: MessageBase{Type: TypeResult, Subtype: SubtypeSuccess}, IsError: false, DurationMs: utils.AnyNumber, DurationApiMs: utils.AnyNumber, NumTurns: utils.AnyNumber, Result: "Team deleted.", SessionID: utils.AnyString, TotalCostUSD: utils.AnyNumber, Usage: utils.AnyMap, ModelUsage: utils.AnyMap, PermissionDenials: []PermissionDenial{}, UUID: utils.AnyString}),
 	)
 
 	// Clean up in case TeamDelete didn't work.

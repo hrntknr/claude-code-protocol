@@ -13,30 +13,29 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"go/ast"
 	"go/parser"
+	"go/printer"
 	"go/token"
 	"os"
+	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
-
-	ccprotocol "github.com/hrntknr/claudecodeprotocol"
-	"github.com/hrntknr/claudecodeprotocol/utils"
 )
 
 func main() {
 	root := findProjectRoot()
 
-	docFile := filepath.Join(root, "protocol.go")
-	msgFuncs := parseMessageFuncs(docFile)
-	scenarios := parseScenarios(filepath.Join(root, "protocol_test.go"))
+	msgTypes := parseMessageTypes(filepath.Join(root, "protocol.go"))
+	scenarios := parseScenarios(root, filepath.Join(root, "protocol_test.go"))
 
 	var buf strings.Builder
 	writeHeader(&buf)
 	writeScenarioSection(&buf, scenarios)
-	writeMessageSection(&buf, msgFuncs)
+	writeMessageSection(&buf, msgTypes)
 
 	outPath := filepath.Join(root, "PROTOCOL.md")
 	if err := os.WriteFile(outPath, []byte(buf.String()), 0644); err != nil {
@@ -70,19 +69,18 @@ func findProjectRoot() string {
 }
 
 // ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Message function parsing (protocol.go)
+// Message type parsing (protocol.go)
 // ---------------------------------------------------------------------------
 
-// messageFunc represents a NewMessage* constructor function with its doc comment.
-type messageFunc struct {
-	name    string // e.g. "NewMessageSystemInit"
+// messageType represents a message type definition with its doc comment.
+type messageType struct {
+	name    string // e.g. "SystemInitMessage"
 	heading string // e.g. "system/init" (from # heading in doc)
 	body    string // doc body after the # heading line
 }
 
-func parseMessageFuncs(filename string) []messageFunc {
+// parseMessageTypes extracts message types whose doc comments contain a "# heading" line.
+func parseMessageTypes(filename string) []messageType {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
 	if err != nil {
@@ -90,31 +88,37 @@ func parseMessageFuncs(filename string) []messageFunc {
 		os.Exit(1)
 	}
 
-	var result []messageFunc
+	var result []messageType
 	for _, decl := range f.Decls {
-		fn, ok := decl.(*ast.FuncDecl)
-		if !ok {
+		gd, ok := decl.(*ast.GenDecl)
+		if !ok || gd.Tok != token.TYPE {
 			continue
 		}
-		if !strings.HasPrefix(fn.Name.Name, "NewMessage") {
+		if gd.Doc == nil {
 			continue
 		}
-		if fn.Doc == nil {
+		heading, body := extractDocSection(gd.Doc.Text())
+		if heading == "" {
 			continue
 		}
-		heading, body := extractFuncDocSection(fn.Doc.Text())
-		result = append(result, messageFunc{
-			name:    fn.Name.Name,
-			heading: heading,
-			body:    body,
-		})
+		for _, spec := range gd.Specs {
+			ts, ok := spec.(*ast.TypeSpec)
+			if !ok {
+				continue
+			}
+			result = append(result, messageType{
+				name:    ts.Name.Name,
+				heading: heading,
+				body:    body,
+			})
+		}
 	}
 	return result
 }
 
-// extractFuncDocSection extracts the "# ..." heading and the body after it
-// from a function's doc comment text.
-func extractFuncDocSection(doc string) (heading, body string) {
+// extractDocSection extracts the "# ..." heading and the body after it
+// from a type's doc comment text.
+func extractDocSection(doc string) (heading, body string) {
 	lines := strings.Split(doc, "\n")
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
@@ -126,9 +130,6 @@ func extractFuncDocSection(doc string) (heading, body string) {
 			return
 		}
 	}
-	// Fallback: no # heading found, use function name and full body after first line.
-	heading = ""
-	body = skipFirstLine(doc)
 	return
 }
 
@@ -140,17 +141,23 @@ func extractFuncDocSection(doc string) (heading, body string) {
 type scenario struct {
 	funcName string
 	title    string
-	turns    [][]assertPattern // each turn has ordered assert patterns
+	turns    []scenarioTurn
 }
 
-// assertPattern represents a single MustJSON(NewMessage*(...)) pattern from AssertOutput.
+// scenarioTurn represents a single user input and the corresponding output patterns.
+type scenarioTurn struct {
+	input   assertPattern
+	outputs []assertPattern
+}
+
+// assertPattern represents a single MustJSON(...) pattern.
 type assertPattern struct {
 	label   string // display label, e.g. "system/init", "assistant(tool_use:Bash)"
-	heading string // corresponding ##### heading, e.g. "system/init", "assistant/tool_use"
-	json    string // actual JSON output from MustJSON
+	heading string // heading anchor target, e.g. "system/init", "assistant"
+	json    string // simplified JSON
 }
 
-func parseScenarios(filename string) []scenario {
+func parseScenarios(root, filename string) []scenario {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
 	if err != nil {
@@ -158,25 +165,75 @@ func parseScenarios(filename string) []scenario {
 		os.Exit(1)
 	}
 
-	var scenarios []scenario
-
+	// Phase 1: collect Go source text of MustJSON arguments.
+	type rawScenario struct {
+		funcName string
+		title    string
+		turns    []sourceTurn
+	}
+	var raws []rawScenario
 	for _, decl := range f.Decls {
 		fn, ok := decl.(*ast.FuncDecl)
 		if !ok || !strings.HasPrefix(fn.Name.Name, "Test") {
 			continue
 		}
-		turns := extractTurnsFromFunc(fn)
+		turns := extractSourceTurns(fset, fn)
 		if len(turns) == 0 {
 			continue
 		}
-		title := titleFromFunc(fn)
-		scenarios = append(scenarios, scenario{
+		raws = append(raws, rawScenario{
 			funcName: fn.Name.Name,
-			title:    title,
+			title:    titleFromFunc(fn),
 			turns:    turns,
 		})
 	}
 
+	// Phase 2: evaluate all MustJSON expressions via go run.
+	var allSources []string
+	for _, r := range raws {
+		for _, turn := range r.turns {
+			allSources = append(allSources, turn.input)
+			allSources = append(allSources, turn.outputs...)
+		}
+	}
+	jsons := evalExpressions(root, allSources)
+
+	// Phase 3: derive labels from JSON and assemble final scenarios.
+	var scenarios []scenario
+	idx := 0
+	for _, r := range raws {
+		var turns []scenarioTurn
+		for _, turn := range r.turns {
+			inputJSON := jsons[idx]
+			idx++
+			inputLabel, inputHeading := labelFromJSON(inputJSON)
+
+			var outputs []assertPattern
+			for range turn.outputs {
+				rawJSON := jsons[idx]
+				label, heading := labelFromJSON(rawJSON)
+				outputs = append(outputs, assertPattern{
+					label:   label,
+					heading: heading,
+					json:    simplifyJSON(rawJSON),
+				})
+				idx++
+			}
+			turns = append(turns, scenarioTurn{
+				input: assertPattern{
+					label:   inputLabel,
+					heading: inputHeading,
+					json:    simplifyJSON(inputJSON),
+				},
+				outputs: outputs,
+			})
+		}
+		scenarios = append(scenarios, scenario{
+			funcName: r.funcName,
+			title:    r.title,
+			turns:    turns,
+		})
+	}
 	return scenarios
 }
 
@@ -192,31 +249,53 @@ func titleFromFunc(fn *ast.FuncDecl) string {
 	return fn.Name.Name[len("Test"):]
 }
 
-// extractTurnsFromFunc walks a test function body to find utils.AssertOutput calls
-// and extracts MustJSON(NewMessage*(...)) patterns from each call.
-func extractTurnsFromFunc(fn *ast.FuncDecl) [][]assertPattern {
-	var turns [][]assertPattern
+// sourceTurn pairs the input (s.Send) with output patterns (utils.AssertOutput).
+type sourceTurn struct {
+	input   string
+	outputs []string
+}
+
+// extractSourceTurns walks a test function body to find s.Send and utils.AssertOutput
+// calls, pairing each Send's MustJSON argument with the following AssertOutput's patterns.
+func extractSourceTurns(fset *token.FileSet, fn *ast.FuncDecl) []sourceTurn {
+	var pendingInput string
+	var turns []sourceTurn
 	ast.Inspect(fn.Body, func(n ast.Node) bool {
 		call, ok := n.(*ast.CallExpr)
-		if !ok || !isAssertOutputCall(call) {
+		if !ok {
 			return true
 		}
-		// Args: t, output, patterns...
-		if len(call.Args) < 3 {
-			return true
-		}
-		var patterns []assertPattern
-		for _, arg := range call.Args[2:] {
-			if p, ok := extractAssertPattern(arg); ok {
-				patterns = append(patterns, p)
+		if isSendCall(call) && len(call.Args) == 1 {
+			if src, ok := extractMustJSONSource(fset, call.Args[0]); ok {
+				pendingInput = src
 			}
+			return true
 		}
-		if len(patterns) > 0 {
-			turns = append(turns, patterns)
+		if isAssertOutputCall(call) && len(call.Args) >= 3 {
+			var sources []string
+			for _, arg := range call.Args[2:] {
+				if src, ok := extractMustJSONSource(fset, arg); ok {
+					sources = append(sources, src)
+				}
+			}
+			if len(sources) > 0 && pendingInput != "" {
+				turns = append(turns, sourceTurn{
+					input:   pendingInput,
+					outputs: sources,
+				})
+				pendingInput = ""
+			}
+			return true
 		}
 		return true
 	})
 	return turns
+}
+
+// isSendCall checks if a call expression is s.Send(...).
+func isSendCall(call *ast.CallExpr) bool {
+	sel, ok := call.Fun.(*ast.SelectorExpr)
+	return ok && sel.Sel.Name == "Send"
 }
 
 // isAssertOutputCall checks if a call expression is utils.AssertOutput(...).
@@ -232,121 +311,144 @@ func isAssertOutputCall(call *ast.CallExpr) bool {
 	return ident.Name == "utils" && sel.Sel.Name == "AssertOutput"
 }
 
-// extractAssertPattern extracts label and JSON from a utils.MustJSON(NewMessage*(...)) expression.
-func extractAssertPattern(expr ast.Expr) (assertPattern, bool) {
+// extractMustJSONSource returns the Go source text of a utils.MustJSON(...) argument.
+func extractMustJSONSource(fset *token.FileSet, expr ast.Expr) (string, bool) {
 	outer, ok := expr.(*ast.CallExpr)
 	if !ok || len(outer.Args) != 1 {
-		return assertPattern{}, false
+		return "", false
 	}
 	sel, ok := outer.Fun.(*ast.SelectorExpr)
 	if !ok || sel.Sel.Name != "MustJSON" {
-		return assertPattern{}, false
+		return "", false
 	}
 	ident, ok := sel.X.(*ast.Ident)
 	if !ok || ident.Name != "utils" {
-		return assertPattern{}, false
+		return "", false
 	}
-	inner, ok := outer.Args[0].(*ast.CallExpr)
-	if !ok {
-		return assertPattern{}, false
-	}
-	innerIdent, ok := inner.Fun.(*ast.Ident)
-	if !ok {
-		return assertPattern{}, false
-	}
-	label, heading, jsonStr := evalConstructor(innerIdent.Name, inner.Args)
-	return assertPattern{label: label, heading: heading, json: jsonStr}, true
+	return exprSource(fset, outer.Args[0]), true
 }
 
-// evalConstructor maps a NewMessage* constructor name and its AST arguments
-// to a display label, heading (matching ##### in the generated doc), and JSON string.
-func evalConstructor(funcName string, args []ast.Expr) (label, heading, jsonStr string) {
-	switch funcName {
-	case "NewMessageSystemInit":
-		return "system/init", "system/init",
-			utils.MustJSON(ccprotocol.NewMessageSystemInit())
-	case "NewMessageSystemStatus":
-		mode := extractStringLit(args[0])
-		return "system/status(" + mode + ")", "system/status",
-			utils.MustJSON(ccprotocol.NewMessageSystemStatus(mode))
-	case "NewMessageAssistantText":
-		text := extractStringLit(args[0])
-		return "assistant(text)", "assistant/text",
-			utils.MustJSON(ccprotocol.NewMessageAssistantText(text))
-	case "NewMessageAssistantToolUse":
-		name := extractStringLit(args[0])
-		return "assistant(tool_use:" + name + ")", "assistant/tool_use",
-			utils.MustJSON(ccprotocol.NewMessageAssistantToolUse(name))
-	case "NewMessageAssistantThinking":
-		thinking := extractStringLit(args[0])
-		return "assistant(thinking)", "assistant/thinking",
-			utils.MustJSON(ccprotocol.NewMessageAssistantThinking(thinking))
-	case "NewMessageUserToolResult":
-		return "user(tool_result)", "user/tool_result",
-			utils.MustJSON(ccprotocol.NewMessageUserToolResult())
-	case "NewMessageUserToolResultError":
-		return "user(tool_result:error)", "user/tool_result, is_error=true",
-			utils.MustJSON(ccprotocol.NewMessageUserToolResultError())
-	case "NewMessageResultSuccess":
-		result := ""
-		if len(args) > 0 {
-			result = extractStringLit(args[0])
+// ---------------------------------------------------------------------------
+// Label derivation from JSON
+// ---------------------------------------------------------------------------
+
+// labelFromJSON derives a display label and heading anchor from the JSON output.
+// It extracts type/subtype for the heading, and appends content block detail for the label.
+func labelFromJSON(jsonStr string) (label, heading string) {
+	var m map[string]any
+	if err := json.Unmarshal([]byte(jsonStr), &m); err != nil {
+		return "unknown", ""
+	}
+
+	msgType, _ := m["type"].(string)
+	subtype, _ := m["subtype"].(string)
+
+	heading = msgType
+	if subtype != "" {
+		heading = msgType + "/" + subtype
+	}
+	label = heading
+
+	// Extract content block type from message.content array.
+	if msg, ok := m["message"].(map[string]any); ok {
+		if content, ok := msg["content"].([]any); ok && len(content) > 0 {
+			if block, ok := content[0].(map[string]any); ok {
+				if blockType, ok := block["type"].(string); ok {
+					detail := blockType
+					if name, _ := block["name"].(string); name != "" && name != "<any>" {
+						detail += ":" + name
+					}
+					label += "(" + detail + ")"
+					heading += "(" + blockType + ")"
+				}
+			}
 		}
-		return "result/success", "result/success",
-			utils.MustJSON(ccprotocol.NewMessageResultSuccess(result))
-	case "NewMessageResultSuccessIsError":
-		return "result/success(is_error:true)", "result/success, is_error=true",
-			utils.MustJSON(ccprotocol.NewMessageResultSuccessIsError())
-	case "NewMessageResultSuccessWithDenials":
-		denials := extractPermissionDenials(args)
-		return "result/success(permission_denials)", "result/success, permission_denials",
-			utils.MustJSON(ccprotocol.NewMessageResultSuccessWithDenials(denials...))
-	case "NewMessageResultErrorDuringExecution":
-		return "result/error_during_execution", "result/error_during_execution",
-			utils.MustJSON(ccprotocol.NewMessageResultErrorDuringExecution())
-	default:
-		return funcName, "", "{}"
 	}
+
+	return
 }
 
-// extractStringLit extracts the string value from a *ast.BasicLit expression.
-func extractStringLit(expr ast.Expr) string {
-	lit, ok := expr.(*ast.BasicLit)
-	if !ok || lit.Kind != token.STRING {
+// ---------------------------------------------------------------------------
+// Expression evaluation (go run)
+// ---------------------------------------------------------------------------
+
+// exprSource returns the Go source text of an AST expression.
+func exprSource(fset *token.FileSet, expr ast.Expr) string {
+	var buf bytes.Buffer
+	if err := printer.Fprint(&buf, fset, expr); err != nil {
 		return ""
 	}
-	s, err := strconv.Unquote(lit.Value)
+	return buf.String()
+}
+
+// evalExpressions builds a temporary Go file that evaluates all source expressions
+// via utils.MustJSON and returns the JSON strings.
+func evalExpressions(root string, sources []string) []string {
+	if len(sources) == 0 {
+		return nil
+	}
+
+	var src strings.Builder
+	src.WriteString("package main\n\nimport (\n\t\"fmt\"\n")
+	src.WriteString("\t. \"github.com/hrntknr/claudecodeprotocol\"\n")
+	src.WriteString("\t\"github.com/hrntknr/claudecodeprotocol/utils\"\n")
+	src.WriteString(")\n\n")
+	// Suppress unused import errors.
+	src.WriteString("var _ = utils.MustJSON\n")
+	src.WriteString("var _ MessageBase\n\n")
+	src.WriteString("func main() {\n")
+	for _, s := range sources {
+		src.WriteString("\tfmt.Println(utils.MustJSON(" + s + "))\n")
+	}
+	src.WriteString("}\n")
+
+	tmpDir, err := os.MkdirTemp(root, ".gendoc-")
 	if err != nil {
-		return ""
+		fmt.Fprintf(os.Stderr, "create temp dir: %v\n", err)
+		os.Exit(1)
 	}
-	return s
+	defer os.RemoveAll(tmpDir)
+
+	tmpFile := filepath.Join(tmpDir, "main.go")
+	if err := os.WriteFile(tmpFile, []byte(src.String()), 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "write temp file: %v\n", err)
+		os.Exit(1)
+	}
+
+	cmd := exec.Command("go", "run", tmpFile)
+	cmd.Dir = root
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "eval expressions: %v\n%s\n", err, stderr.String())
+		os.Exit(1)
+	}
+
+	lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
+	if len(lines) != len(sources) {
+		fmt.Fprintf(os.Stderr, "eval: expected %d results, got %d\n", len(sources), len(lines))
+		os.Exit(1)
+	}
+	return lines
 }
 
-// extractPermissionDenials extracts PermissionDenial struct literals from AST arguments.
-func extractPermissionDenials(args []ast.Expr) []ccprotocol.PermissionDenial {
-	var denials []ccprotocol.PermissionDenial
-	for _, arg := range args {
-		cl, ok := arg.(*ast.CompositeLit)
-		if !ok {
-			continue
-		}
-		var pd ccprotocol.PermissionDenial
-		for _, elt := range cl.Elts {
-			kv, ok := elt.(*ast.KeyValueExpr)
-			if !ok {
-				continue
-			}
-			key, ok := kv.Key.(*ast.Ident)
-			if !ok {
-				continue
-			}
-			if key.Name == "ToolName" {
-				pd.ToolName = extractStringLit(kv.Value)
-			}
-		}
-		denials = append(denials, pd)
-	}
-	return denials
+// ---------------------------------------------------------------------------
+// JSON simplification (sentinel → empty value)
+// ---------------------------------------------------------------------------
+
+// simplifyJSON replaces sentinel values in a compact JSON string with empty values.
+// Input is always compact JSON from json.Marshal, so string replacement preserves key order.
+// json.Marshal escapes <> to \u003c/\u003e, so sentinels use the escaped form.
+// Order matters: composite sentinels must be replaced before the string sentinel.
+func simplifyJSON(jsonStr string) string {
+	s := jsonStr
+	s = strings.ReplaceAll(s, `{"\u003cany\u003e":true}`, `{}`)
+	s = strings.ReplaceAll(s, `["\u003cany\u003e"]`, `[]`)
+	s = strings.ReplaceAll(s, `"\u003cany\u003e"`, `""`)
+	s = strings.ReplaceAll(s, `:-1,`, `:0,`)
+	s = strings.ReplaceAll(s, `:-1}`, `:0}`)
+	return s
 }
 
 // ---------------------------------------------------------------------------
@@ -366,15 +468,10 @@ func writeScenarioSection(buf *strings.Builder, scenarios []scenario) {
 		buf.WriteString("|-----------|---------|------|\n")
 
 		for _, turn := range sc.turns {
-			inputJSON := `{"type":"user","message":{"role":"user","content":"..."}}`
-			buf.WriteString("| ← | user | `" + inputJSON + "` |\n")
+			buf.WriteString("| ← | [" + turn.input.label + "](#" + headingToAnchor(turn.input.heading) + ") | `" + turn.input.json + "` |\n")
 
-			for _, p := range turn {
-				if p.heading != "" {
-					buf.WriteString("| → | [" + p.label + "](#" + headingToAnchor(p.heading) + ") | `" + p.json + "` |\n")
-				} else {
-					buf.WriteString("| → | " + p.label + " | `" + p.json + "` |\n")
-				}
+			for _, p := range turn.outputs {
+				buf.WriteString("| → | [" + p.label + "](#" + headingToAnchor(p.heading) + ") | `" + p.json + "` |\n")
 			}
 		}
 
@@ -382,11 +479,11 @@ func writeScenarioSection(buf *strings.Builder, scenarios []scenario) {
 	}
 }
 
-func writeMessageSection(buf *strings.Builder, msgFuncs []messageFunc) {
+func writeMessageSection(buf *strings.Builder, msgTypes []messageType) {
 	buf.WriteString("## メッセージ\n\n")
-	for _, mf := range msgFuncs {
-		buf.WriteString("### " + mf.heading + "\n\n")
-		buf.WriteString(godocToMarkdown(mf.body) + "\n\n")
+	for _, mt := range msgTypes {
+		buf.WriteString("### " + mt.heading + "\n\n")
+		buf.WriteString(godocToMarkdown(mt.body) + "\n\n")
 	}
 }
 
@@ -462,12 +559,4 @@ func headingToAnchor(heading string) string {
 		}
 	}
 	return buf.String()
-}
-
-// skipFirstLine returns the doc text after the first line, trimmed.
-func skipFirstLine(doc string) string {
-	if idx := strings.Index(doc, "\n"); idx >= 0 {
-		return strings.TrimSpace(doc[idx+1:])
-	}
-	return ""
 }

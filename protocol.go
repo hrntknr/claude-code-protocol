@@ -1,6 +1,10 @@
 //go:generate go run ./cmd/gendoc
 package ccprotocol
 
+// ---------------------------------------------------------------------------
+// Enum
+// ---------------------------------------------------------------------------
+
 type MessageType string
 
 const (
@@ -35,187 +39,275 @@ const (
 	BlockToolResult ContentBlockType = "tool_result"
 )
 
-type Message struct {
-	Type              MessageType        `json:"type,omitempty"`               // メッセージ種別
-	Subtype           MessageSubtype     `json:"subtype,omitempty"`            // サブタイプ (system, result で使用)
-	Message           *MessageBody       `json:"message,omitempty"`            // メッセージ本体 (assistant, user で使用)
-	Result            string             `json:"result,omitempty"`             // 最後のテキストブロックの内容 (result で使用)
-	IsError           bool               `json:"is_error,omitempty"`           // エラー時 true (result で使用)
-	PermissionMode    string             `json:"permissionMode,omitempty"`     // パーミッションモード (system/status で使用)
-	PermissionDenials []PermissionDenial `json:"permission_denials,omitempty"` // パーミッション拒否されたツール (result で使用)
-	Errors            []ResultError      `json:"errors,omitempty"`             // APIエラー配列 (result で使用)
+type PermissionMode string
+
+const (
+	PermissionBypassPermissions PermissionMode = "bypassPermissions"
+	PermissionPlan              PermissionMode = "plan"
+)
+
+type AssistantBodyType string
+
+const (
+	AssistantBodyTypeMessage AssistantBodyType = "message"
+)
+
+// ---------------------------------------------------------------------------
+// Interfaces
+// ---------------------------------------------------------------------------
+
+// IsMessage はプロトコルメッセージ型を制約するインターフェース。
+type IsMessage interface {
+	isMessage()
 }
 
-type MessageBody struct {
-	Role    MessageRole `json:"role,omitempty"`    // "assistant" または "user"
-	Content any         `json:"content,omitempty"` // []ContentBlock or string
-}
-
-type ContentBlock struct {
-	Type      ContentBlockType `json:"type,omitempty"`        // ブロック種別
-	Text      string           `json:"text,omitempty"`        // 応答テキスト (text)
-	Name      string           `json:"name,omitempty"`        // ツール名 (tool_use)
-	ID        string           `json:"id,omitempty"`          // ツール呼び出しID (tool_use)
-	Input     map[string]any   `json:"input,omitempty"`       // ツールパラメータ (tool_use)
-	Thinking  string           `json:"thinking,omitempty"`    // 思考テキスト (thinking)
-	ToolUseID string           `json:"tool_use_id,omitempty"` // 対応するツール呼び出しID (tool_result)
-	Content   string           `json:"content,omitempty"`     // 実行結果テキスト (tool_result)
-	IsError   bool             `json:"is_error,omitempty"`    // エラー時 true (tool_result)
-}
-
-type ResultError struct {
-	Type    string `json:"type,omitempty"`    // エラー種別 (例: "overloaded_error")
-	Message string `json:"message,omitempty"` // エラーメッセージ
-}
-
-type PermissionDenial struct {
-	ToolName string `json:"tool_name,omitempty"` // 拒否されたツール名
+// IsContentBlock はコンテンツブロック型を制約するインターフェース。
+type IsContentBlock interface {
+	isContentBlock()
 }
 
 // ---------------------------------------------------------------------------
-// コンストラクタ関数 — アサーションパターンの構築
+// Base types
 // ---------------------------------------------------------------------------
 
-// NewMessageSystemInit は system/init メッセージのアサーションパターンを生成する。
+// MessageBase はすべてのメッセージに共通するフィールドを持つ。
+type MessageBase struct {
+	Type    MessageType    `json:"type"`
+	Subtype MessageSubtype `json:"subtype,omitempty"`
+}
+
+func (MessageBase) isMessage() {}
+
+// ContentBlockBase はすべてのコンテンツブロックに共通するフィールドを持つ。
+type ContentBlockBase struct {
+	Type ContentBlockType `json:"type"`
+}
+
+func (ContentBlockBase) isContentBlock() {}
+
+// ---------------------------------------------------------------------------
+// Message types
+// ---------------------------------------------------------------------------
+
 // # system/init
 // CLI起動時に最初に出力されるメッセージ。セッションIDやバージョンなどの初期情報を含む。
 // 必ずセッションの最初のメッセージとして出力され、tools フィールドに利用可能なツール一覧が含まれる。
+// mcp_servers, model, slash_commands, agents, skills, plugins などの拡張情報も含む。
 //
 // ```json
-// {"type":"system","subtype":"init","apiKeyStatus":"valid","cwd":"/path","sessionId":"abc","version":"1.0.0","tools":["Bash","Read"]}
+// {"type":"system","subtype":"init","cwd":"/path","session_id":"abc","tools":["Bash","Read"],"mcp_servers":[],"model":"claude-opus-4-6","permissionMode":"bypassPermissions","slash_commands":[...],"apiKeySource":"none","claude_code_version":"2.1.37","output_style":"default","agents":[...],"skills":[...],"plugins":[],"uuid":"xxx"}
 // ```
-func NewMessageSystemInit() Message {
-	return Message{Type: TypeSystem, Subtype: SubtypeInit}
+type SystemInitMessage struct {
+	MessageBase
+	CWD               string         `json:"cwd"`                 // 作業ディレクトリ
+	SessionID         string         `json:"session_id"`          // セッションID
+	Tools             []string       `json:"tools"`               // 利用可能ツール一覧
+	MCPServers        []string       `json:"mcp_servers"`         // MCP サーバー一覧
+	Model             string         `json:"model"`               // 使用モデル名
+	PermissionMode    PermissionMode `json:"permissionMode"`      // パーミッションモード
+	SlashCommands     []string       `json:"slash_commands"`      // スラッシュコマンド一覧
+	APIKeySource      string         `json:"apiKeySource"`        // API キーのソース
+	ClaudeCodeVersion string         `json:"claude_code_version"` // CLI バージョン
+	OutputStyle       string         `json:"output_style"`        // 出力スタイル
+	Agents            []string       `json:"agents"`              // エージェント一覧
+	Skills            []string       `json:"skills"`              // スキル一覧
+	Plugins           []string       `json:"plugins"`             // プラグイン一覧
+	UUID              string         `json:"uuid"`                // メッセージ固有ID
 }
 
-// NewMessageSystemStatus は system/status メッセージのアサーションパターンを生成する。
 // # system/status
 // システム状態の変更を通知するメッセージ。
-// EnterPlanMode ツール実行直後に出力され、PermissionMode フィールドで現在のモードが通知される。
+// パーミッションモードの変更時などに出力され、permissionMode フィールドで現在のモードが通知される。
 //
 // ```json
-// {"type":"system","subtype":"status","permissionMode":"plan"}
+// {"type":"system","subtype":"status","status":null,"permissionMode":"plan","uuid":"xxx","session_id":"abc"}
 // ```
-func NewMessageSystemStatus(permissionMode string) Message {
-	return Message{Type: TypeSystem, Subtype: SubtypeStatus, PermissionMode: permissionMode}
+type SystemStatusMessage struct {
+	MessageBase
+	Status         string         `json:"status,omitempty"` // ステータス (null or string)
+	PermissionMode PermissionMode `json:"permissionMode"`   // パーミッションモード
+	UUID           string         `json:"uuid"`             // メッセージ固有ID
+	SessionID      string         `json:"session_id"`       // セッションID
 }
 
-// NewMessageAssistantText はテキスト応答の assistant メッセージのアサーションパターンを生成する。
-// # assistant/text
-// モデルのテキスト応答を含むメッセージ。
-// 各コンテンツブロックは個別の assistant メッセージとして出力され、
-// 複数テキストブロックがある場合はブロックごとに別メッセージになる。
-// text が空文字列の場合、Text フィールドは省略される（部分一致用）。
+// # assistant
+// モデルの応答を含むメッセージ。各コンテンツブロックは個別の assistant メッセージとして出力される。
+// content 配列には text, tool_use, thinking のいずれかのブロックが含まれる。
+//
+// #### assistant(text)
+//
+// テキスト応答のコンテンツブロック。text フィールドに応答テキストが入る。
 //
 // ```json
-// {"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Hello!"}]}}
+// {"type":"assistant","message":{"content":[{"type":"text","text":"Hello!"}],"id":"msg_001","model":"claude-sonnet-4-5-20250929","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":10,"output_tokens":1}},"parent_tool_use_id":null,"session_id":"abc","uuid":"xxx"}
 // ```
-func NewMessageAssistantText(text string) Message {
-	return Message{Type: TypeAssistant, Message: &MessageBody{Role: RoleAssistant, Content: []ContentBlock{{Type: BlockText, Text: text}}}}
-}
-
-// NewMessageAssistantToolUse はツール呼び出しの assistant メッセージのアサーションパターンを生成する。
-// # assistant/tool_use
-// モデルがツール実行を要求するメッセージ。
-// 各コンテンツブロックは個別の assistant メッセージとして出力される。
+//
+// #### assistant(tool_use)
+//
+// ツール呼び出しのコンテンツブロック。name フィールドにツール名、input フィールドにパラメータが入る。
 //
 // ```json
-// {"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"toolu_001","name":"Bash","input":{"command":"echo hello"}}]}}
+// {"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_001","name":"Bash","input":{"command":"echo hello"}}],"id":"msg_001","model":"claude-sonnet-4-5-20250929","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":10,"output_tokens":1}},"parent_tool_use_id":null,"session_id":"abc","uuid":"xxx"}
 // ```
-func NewMessageAssistantToolUse(name string) Message {
-	return Message{Type: TypeAssistant, Message: &MessageBody{Role: RoleAssistant, Content: []ContentBlock{{Type: BlockToolUse, Name: name}}}}
-}
-
-// NewMessageAssistantThinking は拡張思考ブロックの assistant メッセージのアサーションパターンを生成する。
-// # assistant/thinking
-// モデルの内部推論過程を含むメッセージ。
-// thinking ブロックは text ブロックより前に、別の assistant メッセージとして順序通り出力される。
+//
+// #### assistant(thinking)
+//
+// 拡張思考のコンテンツブロック。thinking フィールドに思考内容が入る。
 //
 // ```json
-// {"type":"assistant","message":{"role":"assistant","content":[{"type":"thinking","thinking":"Let me think..."}]}}
+// {"type":"assistant","message":{"content":[{"type":"thinking","thinking":"Let me think...","signature":""}],"id":"msg_001","model":"claude-sonnet-4-5-20250929","role":"assistant","stop_reason":null,"stop_sequence":null,"type":"message","usage":{"input_tokens":10,"output_tokens":1}},"parent_tool_use_id":null,"session_id":"abc","uuid":"xxx"}
 // ```
-func NewMessageAssistantThinking(thinking string) Message {
-	return Message{Type: TypeAssistant, Message: &MessageBody{Role: RoleAssistant, Content: []ContentBlock{{Type: BlockThinking, Thinking: thinking}}}}
+type AssistantMessage struct {
+	MessageBase
+	Message         AssistantBody `json:"message"`
+	ParentToolUseID string        `json:"parent_tool_use_id,omitempty"` // 親ツール呼び出しID (null or string)
+	SessionID       string        `json:"session_id"`                   // セッションID
+	UUID            string        `json:"uuid"`                         // メッセージ固有ID
 }
 
-// NewMessageUserText はユーザテキストメッセージを生成する。
-// # user/text
-// ユーザからCLIへ送信するメッセージ。stream-json形式でstdinに送る。
-// content にはユーザの指示テキストが入る。
+// # user
+// ユーザメッセージ。入力（stdin→CLI）と出力（CLI→stdout）の両方で使用される。
+// 入力の場合は content が文字列、出力（ツール実行結果）の場合は content がブロック配列となる。
 //
 // ```json
 // {"type":"user","message":{"role":"user","content":"say hello"}}
 // ```
-func NewMessageUserText(content string) Message {
-	return Message{Type: TypeUser, Message: &MessageBody{Role: RoleUser, Content: content}}
-}
-
-// NewMessageUserToolResult はツール実行結果の user メッセージのアサーションパターンを生成する。
-// # user/tool_result
-// CLIがツール実行結果を報告する user メッセージ。stdout に出力される。
-// ContentBlock の ID に対応する tool_use_id を持つ。
+//
+// #### user(tool_result)
+//
+// CLIがツール実行結果を報告するメッセージ。content は tool_result ブロックの配列。
+// 各ブロックは対応する tool_use の ID を tool_use_id フィールドに持つ。
+// parent_tool_use_id, session_id, uuid, tool_use_result がトップレベルに含まれる。
 //
 // ```json
-// {"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"toolu_001","content":"command output"}]}}
+// {"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"toolu_001","content":"command output"}]},"parent_tool_use_id":null,"session_id":"abc","uuid":"xxx","tool_use_result":{}}
 // ```
-func NewMessageUserToolResult() Message {
-	return Message{Type: TypeUser, Message: &MessageBody{Content: []ContentBlock{{Type: BlockToolResult}}}}
+type UserTextMessage struct {
+	MessageBase
+	Message UserTextBody `json:"message"`
 }
 
-// NewMessageUserToolResultError はエラーのツール実行結果の user メッセージのアサーションパターンを生成する。
-// # user/tool_result, is_error=true
-// ツール実行失敗またはパーミッション拒否時に出力されるエラー付きツール実行結果。
-//
-// ```json
-// {"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"toolu_001","is_error":true,"content":"Error: file not found"}]}}
-// ```
-func NewMessageUserToolResultError() Message {
-	return Message{Type: TypeUser, Message: &MessageBody{Content: []ContentBlock{{Type: BlockToolResult, IsError: true}}}}
+// UserToolResultMessage はCLIがツール実行結果を報告する user メッセージ。
+// ドキュメントは UserTextMessage の # user セクションを参照。
+type UserToolResultMessage struct {
+	MessageBase
+	Message         UserToolResultBody `json:"message"`
+	ParentToolUseID string             `json:"parent_tool_use_id,omitempty"` // 親ツール呼び出しID (null or string)
+	SessionID       string             `json:"session_id"`                   // セッションID
+	UUID            string             `json:"uuid"`                         // メッセージ固有ID
+	ToolUseResult   any                `json:"tool_use_result"`              // ツール実行結果 (map or string or null)
 }
 
-// NewMessageResultSuccess は正常完了の result メッセージのアサーションパターンを生成する。
 // # result/success
-// ターンの正常完了を示すメッセージ。Read() はこのメッセージ受信時に読み取りを終了する。
-// Result フィールドには最後のテキストブロックの内容が入る。
-// result が空文字列の場合、Result フィールドは省略される（部分一致用）。
+// ターンの正常完了を示すメッセージ。1ターンの処理が正常に終了したことを示す。
+// result フィールドには最後のテキストブロックの内容が入る。
+// permission_denials は常に存在し、空の場合は空配列 [] となる。
 //
 // ```json
-// {"type":"result","subtype":"success","result":"Hello!","is_error":false,"duration_ms":1234,"duration_api_ms":1000}
+// {"type":"result","subtype":"success","is_error":false,"duration_ms":55,"duration_api_ms":12,"num_turns":1,"result":"Hello!","stop_reason":null,"session_id":"abc","total_cost_usd":0.00055,"usage":{},"modelUsage":{},"permission_denials":[],"uuid":"xxx"}
 // ```
-func NewMessageResultSuccess(result string) Message {
-	return Message{Type: TypeResult, Subtype: SubtypeSuccess, Result: result}
+type ResultSuccessMessage struct {
+	MessageBase
+	IsError           bool               `json:"is_error"`              // エラー時 true
+	DurationMs        float64            `json:"duration_ms"`           // 総所要時間 (ms)
+	DurationApiMs     float64            `json:"duration_api_ms"`       // API所要時間 (ms)
+	NumTurns          float64            `json:"num_turns"`             // ターン数
+	Result            string             `json:"result"`                // 最後のテキストブロック内容
+	StopReason        string             `json:"stop_reason,omitempty"` // 停止理由 (null or string)
+	SessionID         string             `json:"session_id"`            // セッションID
+	TotalCostUSD      float64            `json:"total_cost_usd"`        // 総コスト (USD)
+	Usage             map[string]any     `json:"usage"`                 // トークン使用量
+	ModelUsage        map[string]any     `json:"modelUsage"`            // モデル別使用量
+	PermissionDenials []PermissionDenial `json:"permission_denials"`    // パーミッション拒否 (常に存在)
+	UUID              string             `json:"uuid"`                  // メッセージ固有ID
 }
 
-// NewMessageResultSuccessIsError は is_error:true の result/success のアサーションパターンを生成する。
-// # result/success, is_error=true
-// max_tokens による応答打ち切り時に出力される。Subtype は "success" だが IsError が true になる。
-//
-// ```json
-// {"type":"result","subtype":"success","is_error":true,"result":"truncated response..."}
-// ```
-func NewMessageResultSuccessIsError() Message {
-	return Message{Type: TypeResult, Subtype: SubtypeSuccess, IsError: true}
-}
-
-// NewMessageResultSuccessWithDenials は permission_denials 付きの result/success のアサーションパターンを生成する。
-// # result/success, permission_denials
-// 非インタラクティブモードでパーミッション拒否されたツールがある場合に出力される。
-//
-// ```json
-// {"type":"result","subtype":"success","permission_denials":[{"tool_name":"AskUserQuestion"}]}
-// ```
-func NewMessageResultSuccessWithDenials(denials ...PermissionDenial) Message {
-	return Message{Type: TypeResult, Subtype: SubtypeSuccess, PermissionDenials: denials}
-}
-
-// NewMessageResultErrorDuringExecution はAPIエラーの result メッセージのアサーションパターンを生成する。
 // # result/error_during_execution
-// APIがSSEエラーイベントを返した場合のターン終了メッセージ。
-// assistant メッセージは出力されず、Errors 配列にエラー種別とメッセージが格納される。
+// APIがエラーを返した場合のターン終了メッセージ。
+// result/success と同じ共通フィールドに加え、errors 配列にエラーメッセージ文字列が格納される。
 //
 // ```json
-// {"type":"result","subtype":"error_during_execution","errors":[{"type":"overloaded_error","message":"Overloaded"}]}
+// {"type":"result","subtype":"error_during_execution","is_error":false,"duration_ms":52,"duration_api_ms":18,"num_turns":1,"session_id":"abc","total_cost_usd":0,"usage":{},"modelUsage":{},"permission_denials":[],"uuid":"xxx","errors":["error message"]}
 // ```
-func NewMessageResultErrorDuringExecution() Message {
-	return Message{Type: TypeResult, Subtype: SubtypeErrorDuringExecution}
+type ResultErrorMessage struct {
+	MessageBase
+	IsError           bool               `json:"is_error"`           // エラーフラグ
+	DurationMs        float64            `json:"duration_ms"`        // 総所要時間 (ms)
+	DurationApiMs     float64            `json:"duration_api_ms"`    // API所要時間 (ms)
+	NumTurns          float64            `json:"num_turns"`          // ターン数
+	SessionID         string             `json:"session_id"`         // セッションID
+	TotalCostUSD      float64            `json:"total_cost_usd"`     // 総コスト (USD)
+	Usage             map[string]any     `json:"usage"`              // トークン使用量
+	ModelUsage        map[string]any     `json:"modelUsage"`         // モデル別使用量
+	PermissionDenials []PermissionDenial `json:"permission_denials"` // パーミッション拒否 (常に存在)
+	UUID              string             `json:"uuid"`               // メッセージ固有ID
+	Errors            []string           `json:"errors"`             // エラー配列
+}
+
+// ---------------------------------------------------------------------------
+// Content block types
+// ---------------------------------------------------------------------------
+
+// TextBlock はテキスト応答のコンテンツブロック。
+type TextBlock struct {
+	ContentBlockBase
+	Text string `json:"text"`
+}
+
+// ToolUseBlock はツール呼び出しのコンテンツブロック。
+type ToolUseBlock struct {
+	ContentBlockBase
+	ID    string         `json:"id"`    // ツール呼び出しID
+	Name  string         `json:"name"`  // ツール名
+	Input map[string]any `json:"input"` // ツールパラメータ
+}
+
+// ThinkingBlock は拡張思考のコンテンツブロック。
+type ThinkingBlock struct {
+	ContentBlockBase
+	Thinking  string `json:"thinking"`
+	Signature string `json:"signature"` // 署名 (空文字列)
+}
+
+// ToolResultBlock はツール実行結果のコンテンツブロック。
+type ToolResultBlock struct {
+	ContentBlockBase
+	ToolUseID string `json:"tool_use_id"`        // 対応するツール呼び出しID
+	Content   any    `json:"content"`            // 実行結果 (配列 or 文字列)
+	IsError   bool   `json:"is_error,omitempty"` // エラー時 true
+}
+
+// ---------------------------------------------------------------------------
+// Other
+// ---------------------------------------------------------------------------
+
+// AssistantBody は assistant メッセージの本体。
+type AssistantBody struct {
+	Content      []IsContentBlock  `json:"content"`
+	ID           string            `json:"id"`    // メッセージID
+	Model        string            `json:"model"` // モデル名
+	Role         MessageRole       `json:"role"`
+	StopReason   string            `json:"stop_reason,omitempty"`   // 停止理由 (null or string)
+	StopSequence string            `json:"stop_sequence,omitempty"` // 停止シーケンス (null or string)
+	BodyType     AssistantBodyType `json:"type"`                    // 常に "message"
+	Usage        map[string]any    `json:"usage"`                   // トークン使用量
+}
+
+// UserTextBody は user テキストメッセージの本体。
+type UserTextBody struct {
+	Role    MessageRole `json:"role"`
+	Content string      `json:"content"`
+}
+
+// UserToolResultBody は user ツール実行結果メッセージの本体。
+type UserToolResultBody struct {
+	Role    MessageRole       `json:"role"` // 常に "user"
+	Content []ToolResultBlock `json:"content"`
+}
+
+// PermissionDenial は拒否されたツールの情報。
+type PermissionDenial struct {
+	ToolName  string         `json:"tool_name"`   // ツール名
+	ToolUseID string         `json:"tool_use_id"` // ツール呼び出しID
+	ToolInput map[string]any `json:"tool_input"`  // ツール入力パラメータ
 }

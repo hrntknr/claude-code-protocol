@@ -164,8 +164,11 @@ func MustJSON(v any) string {
 }
 
 // AssertOutput verifies that the output contains messages matching each expected
-// pattern in order. Each pattern is a JSON object whose fields must be a subset
-// of the actual message (partial match). Messages not matching any pattern are skipped.
+// pattern in order. Each pattern is a JSON string produced by MustJSON.
+// The comparison is exact: all fields and array elements must match.
+// Messages not matching any pattern are skipped.
+// Any マッチャーセンチネルは型レベルの一致で判定される。
+// actual 側に存在し pattern 側に存在しないキーは、値が null であれば許容される。
 func AssertOutput(t *testing.T, output []json.RawMessage, expectedPatterns ...string) {
 	t.Helper()
 
@@ -177,55 +180,101 @@ func AssertOutput(t *testing.T, output []json.RawMessage, expectedPatterns ...st
 		}
 
 		found := false
+		startPos := pos
 		for ; pos < len(output); pos++ {
 			var actual any
 			if err := json.Unmarshal(output[pos], &actual); err != nil {
 				continue
 			}
-			if jsonContains(actual, expect) {
+			if jsonExact(actual, expect) {
 				pos++
 				found = true
 				break
 			}
 		}
 		if !found {
-			t.Errorf("expected[%d] not found: %s", i, pattern)
+			t.Errorf("expected[%d] not found in output[%d:]:\n  pattern: %s", i, startPos, pattern)
 		}
 	}
 }
 
-// jsonContains returns true if actual contains all fields in expect (recursive subset match).
-func jsonContains(actual, expect any) bool {
+// jsonExact returns true if actual matches expect.
+// All keys in expect must exist in actual with matching values.
+// Extra keys in actual are allowed only if their value is null (nil).
+// All elements in arrays must match (same length).
+//
+// センチネル値の検出:
+//   - 文字列 "<any>"          → 任意の値にマッチ（型を問わない）
+//   - float64 -1              → 任意の float64 にマッチ
+//   - map に "<any>" キー     → 任意の map にマッチ
+//   - 配列 ["<any>"]          → 任意の配列にマッチ
+func jsonExact(actual, expect any) bool {
+	// String sentinel: "<any>" matches any value regardless of type.
+	if s, ok := expect.(string); ok && s == "<any>" {
+		return true
+	}
+
 	switch e := expect.(type) {
 	case map[string]any:
+		// Map sentinel: {"<any>": true} matches any map.
+		if _, ok := e["<any>"]; ok && len(e) == 1 {
+			_, ok := actual.(map[string]any)
+			return ok
+		}
+		// Normal map comparison.
 		a, ok := actual.(map[string]any)
 		if !ok {
 			return false
 		}
+		// All keys in expect must exist in actual with matching values.
 		for k, ev := range e {
 			av, ok := a[k]
 			if !ok {
 				return false
 			}
-			if !jsonContains(av, ev) {
+			if !jsonExact(av, ev) {
 				return false
+			}
+		}
+		// Extra keys in actual are allowed only if their value is null.
+		for k, av := range a {
+			if _, ok := e[k]; !ok {
+				if av != nil {
+					return false
+				}
 			}
 		}
 		return true
 	case []any:
+		// Array sentinel: ["<any>"] matches any array.
+		if len(e) == 1 {
+			if s, ok := e[0].(string); ok && s == "<any>" {
+				_, ok := actual.([]any)
+				return ok
+			}
+		}
+		// Normal exact array comparison.
 		a, ok := actual.([]any)
 		if !ok {
 			return false
 		}
-		if len(a) < len(e) {
+		if len(a) != len(e) {
 			return false
 		}
 		for i, ev := range e {
-			if !jsonContains(a[i], ev) {
+			if !jsonExact(a[i], ev) {
 				return false
 			}
 		}
 		return true
+	case float64:
+		// Number sentinel: -1 matches any number.
+		if e == -1 {
+			_, ok := actual.(float64)
+			return ok
+		}
+		a, ok := actual.(float64)
+		return ok && a == e
 	default:
 		return fmt.Sprintf("%v", actual) == fmt.Sprintf("%v", expect)
 	}

@@ -1,11 +1,11 @@
-// cmd/gendoc generates PROTOCOL.md from Go doc comments.
+// cmd/gendoc generates README.md from Go doc comments.
 //
 // It parses protocol.go for schema type definitions (enum constants and unified
 // struct types) and protocol_test.go for scenario descriptions, then produces
 // a two-section markdown document:
 //
-//  1. シナリオ — end-to-end usage examples extracted from test functions
-//  2. スキーマ — enum constants and struct type definitions
+//  1. Scenarios — end-to-end usage examples extracted from test functions
+//  2. Messages — enum constants and struct type definitions
 //
 // Usage:
 //
@@ -37,7 +37,7 @@ func main() {
 	writeScenarioSection(&buf, scenarios)
 	writeMessageSection(&buf, msgTypes)
 
-	outPath := filepath.Join(root, "PROTOCOL.md")
+	outPath := filepath.Join(root, "README.md")
 	if err := os.WriteFile(outPath, []byte(buf.String()), 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "error writing %s: %v\n", outPath, err)
 		os.Exit(1)
@@ -456,11 +456,11 @@ func simplifyJSON(jsonStr string) string {
 // ---------------------------------------------------------------------------
 
 func writeHeader(buf *strings.Builder) {
-	buf.WriteString("# Claude Code CLI stream-json プロトコル\n\n")
+	buf.WriteString("# Claude Code CLI Protocol\n\n")
 }
 
 func writeScenarioSection(buf *strings.Builder, scenarios []scenario) {
-	buf.WriteString("## シナリオ\n\n")
+	buf.WriteString("## Scenarios\n\n")
 
 	for _, sc := range scenarios {
 		buf.WriteString("### " + sc.title + "\n\n")
@@ -480,7 +480,7 @@ func writeScenarioSection(buf *strings.Builder, scenarios []scenario) {
 }
 
 func writeMessageSection(buf *strings.Builder, msgTypes []messageType) {
-	buf.WriteString("## メッセージ\n\n")
+	buf.WriteString("## Messages\n\n")
 	for _, mt := range msgTypes {
 		buf.WriteString("### " + mt.heading + "\n\n")
 		buf.WriteString(godocToMarkdown(mt.body) + "\n\n")

@@ -12,7 +12,7 @@ import (
 
 const agentTeamEnv = "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1"
 
-// シンプルなテキスト応答の基本フロー
+// Basic flow for a simple text response
 func TestSimpleTextResponse(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.TextResponse("Hello!"),
@@ -31,7 +31,7 @@ func TestSimpleTextResponse(t *testing.T) {
 	)
 }
 
-// 単一のBashツール呼び出しフロー
+// Single Bash tool use flow
 func TestToolUseBash(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: API tells CLI to run a Bash command
@@ -56,7 +56,7 @@ func TestToolUseBash(t *testing.T) {
 	)
 }
 
-// 2段階の連続ツール呼び出しフロー
+// Two-step sequential tool use flow
 func TestToolUseMultiStep(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: First Bash tool use
@@ -112,7 +112,7 @@ func withInit(responses ...[]utils.SSEEvent) [][]utils.SSEEvent {
 	return append(initResponses(), responses...)
 }
 
-// テキストとツール呼び出しが同一レスポンスに含まれるケース
+// Text and tool use in the same response
 func TestTextAndToolUseInSameResponse(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: text + tool_use in one response
@@ -140,7 +140,7 @@ func TestTextAndToolUseInSameResponse(t *testing.T) {
 	)
 }
 
-// 複数ツールの並列呼び出しフロー
+// Parallel invocation of multiple tools
 func TestParallelToolUse(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: two tool_use blocks in one response
@@ -179,7 +179,7 @@ func TestParallelToolUse(t *testing.T) {
 	)
 }
 
-// 同一セッション内でのマルチターン会話
+// Multi-turn conversation within the same session
 func TestMultiTurnConversation(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		utils.TextResponse("First answer."),
@@ -207,7 +207,7 @@ func TestMultiTurnConversation(t *testing.T) {
 	)
 }
 
-// max_tokensで応答が打ち切られた場合の挙動
+// Behavior when response is truncated by max_tokens
 func TestMaxTokensStopReason(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.MaxTokensTextResponse("This response was truncated because it hit the max"),
@@ -230,7 +230,7 @@ func TestMaxTokensStopReason(t *testing.T) {
 	)
 }
 
-// 拡張思考（extended thinking）ブロックを含む応答
+// Response containing extended thinking blocks
 func TestThinkingResponse(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.ThinkingResponse(
@@ -260,7 +260,7 @@ func TestThinkingResponse(t *testing.T) {
 // Tool coverage
 // ---------------------------------------------------------------------------
 
-// Readツールによるファイル読み取り
+// File reading via the Read tool
 func TestToolUseRead(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.txt")
@@ -290,7 +290,7 @@ func TestToolUseRead(t *testing.T) {
 	)
 }
 
-// Writeツールによるファイル作成
+// File creation via the Write tool
 func TestToolUseWrite(t *testing.T) {
 	tmpDir := t.TempDir()
 	targetFile := filepath.Join(tmpDir, "output.txt")
@@ -327,7 +327,7 @@ func TestToolUseWrite(t *testing.T) {
 	}
 }
 
-// Editツールによるファイル編集
+// File editing via the Edit tool
 func TestToolUseEdit(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "editable.txt")
@@ -375,7 +375,7 @@ func TestToolUseEdit(t *testing.T) {
 	}
 }
 
-// Globツールによるファイルパターンマッチ
+// File pattern matching via the Glob tool
 func TestToolUseGlob(t *testing.T) {
 	tmpDir := t.TempDir()
 	for _, name := range []string{"a.txt", "b.txt", "c.log"} {
@@ -406,7 +406,7 @@ func TestToolUseGlob(t *testing.T) {
 	)
 }
 
-// Grepツールによるコンテンツ検索
+// Content search via the Grep tool
 func TestToolUseGrep(t *testing.T) {
 	tmpDir := t.TempDir()
 	if err := os.WriteFile(
@@ -440,7 +440,7 @@ func TestToolUseGrep(t *testing.T) {
 	)
 }
 
-// TodoWriteツールによるタスクリスト管理
+// Task list management via the TodoWrite tool
 func TestToolUseTodoWrite(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: Create a todo list
@@ -467,7 +467,7 @@ func TestToolUseTodoWrite(t *testing.T) {
 	)
 }
 
-// Read → Edit → Bashの複数ステップツールチェイン
+// Multi-step tool chain: Read → Edit → Bash
 func TestLongToolChain(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "chain.txt")
@@ -521,7 +521,7 @@ func TestLongToolChain(t *testing.T) {
 // Advanced flows
 // ---------------------------------------------------------------------------
 
-// 思考ブロック後にツール呼び出しが続くフロー
+// Flow where tool use follows a thinking block
 func TestThinkingWithToolUse(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: thinking + tool_use
@@ -549,7 +549,7 @@ func TestThinkingWithToolUse(t *testing.T) {
 	)
 }
 
-// スタブAPIのリクエスト記録機能
+// Stub API request recording functionality
 func TestRequestRecording(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: tool_use
@@ -603,7 +603,7 @@ func TestRequestRecording(t *testing.T) {
 // Additional tool coverage
 // ---------------------------------------------------------------------------
 
-// NotebookEditツールによるJupyterノートブック編集
+// Jupyter notebook editing via the NotebookEdit tool
 func TestToolUseNotebookEdit(t *testing.T) {
 	tmpDir := t.TempDir()
 	nbFile := filepath.Join(tmpDir, "test.ipynb")
@@ -654,7 +654,7 @@ func TestToolUseNotebookEdit(t *testing.T) {
 	}
 }
 
-// AskUserQuestionツールの非インタラクティブモードでの挙動
+// AskUserQuestion tool behavior in non-interactive mode
 func TestToolUseAskUserQuestion(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: AskUserQuestion tool_use
@@ -694,7 +694,7 @@ func TestToolUseAskUserQuestion(t *testing.T) {
 	)
 }
 
-// EnterPlanModeツールによるプランモード遷移
+// Plan mode transition via the EnterPlanMode tool
 func TestToolUseEnterPlanMode(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: EnterPlanMode tool_use
@@ -722,7 +722,7 @@ func TestToolUseEnterPlanMode(t *testing.T) {
 	)
 }
 
-// WebFetchツールのURL取得挙動
+// URL fetching behavior of the WebFetch tool
 func TestToolUseWebFetch(t *testing.T) {
 	stub := &utils.StubAPIServer{
 		StaticPages: map[string]string{
@@ -780,7 +780,7 @@ func TestToolUseWebFetch(t *testing.T) {
 // Error handling flows
 // ---------------------------------------------------------------------------
 
-// ツール実行失敗時のエラーハンドリング
+// Error handling on tool execution failure
 func TestToolError(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: Read a non-existent file
@@ -807,7 +807,7 @@ func TestToolError(t *testing.T) {
 	)
 }
 
-// APIレベルのSSEエラーイベント受信時の挙動
+// Behavior when receiving API-level SSE error events
 func TestAPIError(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// All requests (including init) get the same error.
@@ -834,7 +834,7 @@ func TestAPIError(t *testing.T) {
 // Additional content block patterns
 // ---------------------------------------------------------------------------
 
-// 複数テキストブロックを含む応答の出力形式
+// Output format for responses containing multiple text blocks
 func TestMultipleTextBlocks(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.MultiTextResponse("First paragraph.", "Second paragraph."),
@@ -864,7 +864,7 @@ func TestMultipleTextBlocks(t *testing.T) {
 // a task list and communicate via file-based inboxes.
 // Enabled via CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1.
 
-// TeamCreateツールによるチーム作成
+// Team creation via the TeamCreate tool
 func TestToolUseTeamCreate(t *testing.T) {
 	teamName := "proto-test-team-create"
 
@@ -901,7 +901,7 @@ func TestToolUseTeamCreate(t *testing.T) {
 	os.RemoveAll(filepath.Join(home, ".claude", "tasks", teamName))
 }
 
-// TeamDeleteツールのアクティブチームなし時の挙動
+// TeamDelete tool behavior when no active team exists
 func TestToolUseTeamDelete(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: TeamDelete (no active team)
@@ -928,7 +928,7 @@ func TestToolUseTeamDelete(t *testing.T) {
 	)
 }
 
-// SendMessageツールのチームコンテキストなし時の挙動
+// SendMessage tool behavior without team context
 func TestToolUseSendMessage(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: withInit(
 		// Request 1: SendMessage (no team context)
@@ -961,7 +961,7 @@ func TestToolUseSendMessage(t *testing.T) {
 	)
 }
 
-// Taskツールによるチームメイトのスポーン（生成）
+// Spawning teammates via the Task tool
 func TestToolUseTaskSpawnTeammate(t *testing.T) {
 	teamName := "proto-test-task-teammate"
 
@@ -1013,7 +1013,7 @@ func TestToolUseTaskSpawnTeammate(t *testing.T) {
 	os.RemoveAll(filepath.Join(home, ".claude", "tasks", teamName))
 }
 
-// エージェントチームのライフサイクル全体（作成→削除）をマルチターンで
+// Full agent team lifecycle (create → delete) across multiple turns
 func TestAgentTeamLifecycle(t *testing.T) {
 	teamName := "proto-test-lifecycle"
 
@@ -1051,7 +1051,7 @@ func TestAgentTeamLifecycle(t *testing.T) {
 
 	// Turn 2: Delete team
 	s.Send(utils.MustJSON(UserTextMessage{MessageBase: MessageBase{Type: TypeUser}, Message: UserTextBody{Role: RoleUser, Content: "now delete the team"}}))
-	// Observed: TeamDelete in second turn emits init again (CLIのsession状態のリフレッシュ),
+	// Observed: TeamDelete in second turn emits init again (CLI session state refresh),
 	// then tool_use → tool_result with success:true and cleanup message → final text → result.
 	utils.AssertOutput(t, s.Read(),
 		utils.MustJSON(AssistantMessage{MessageBase: MessageBase{Type: TypeAssistant}, Message: AssistantBody{Content: []IsContentBlock{ToolUseBlock{ContentBlockBase: ContentBlockBase{Type: BlockToolUse}, ID: utils.AnyString, Name: "TeamDelete", Input: utils.AnyMap}}, ID: utils.AnyString, Model: utils.AnyString, Role: RoleAssistant, BodyType: AssistantBodyTypeMessage, Usage: utils.AnyMap}, SessionID: utils.AnyString, UUID: utils.AnyString}),

@@ -1,47 +1,47 @@
-Claude Code CLIの `--output-format stream-json` プロトコルを観測ベースで解析し、回帰テストとして記録するプロジェクト。
+A project that analyzes the `--output-format stream-json` protocol of Claude Code CLI through observation and records the results as regression tests.
 
-# 目的
+# Purpose
 
-- 解析対象は Claude Code CLI（`claude` コマンド）の stream-json I/O のみ。
-- テストコード → Claude Code CLI → Stub API という構成で、CLIの入出力を観測する。
-  - input: `--input-format stream-json` でstdinへ送るJSONL
-  - output: `--output-format stream-json` でstdoutから受け取るJSONL
-- 観測結果をGoテストとして記録し、CLIの破壊的変更を検知する回帰テストとする。
+- The analysis target is solely the stream-json I/O of Claude Code CLI (the `claude` command).
+- The architecture is: Test code → Claude Code CLI → Stub API, observing the CLI's input/output.
+  - input: JSONL sent to stdin via `--input-format stream-json`
+  - output: JSONL received from stdout via `--output-format stream-json`
+- Observation results are recorded as Go tests to serve as regression tests that detect breaking changes in the CLI.
 
-# 構成
+# Structure
 
 ```
-protocol_test.go     -- 観測・回帰テスト本体
+protocol_test.go     -- Main observation/regression test file
 utils/
-  stub_api.go        -- Anthropic Messages API のSSEストリーミングスタブ
-  harness.go         -- CLIプロセス管理とアサーションユーティリティ
+  stub_api.go        -- SSE streaming stub for the Anthropic Messages API
+  harness.go         -- CLI process management and assertion utilities
 ```
 
-# テストの書き方
+# Writing Tests
 
-## 基本パターン
+## Basic Pattern
 
-1. `utils.StubAPIServer` に返すSSEレスポンス列を設定し、`Start()` する
-2. `utils.NewSession(t, stub.URL())` でCLIプロセスを起動する
-3. `s.Send(...)` でstream-json形式のユーザメッセージをstdinに送る
-4. `s.Read()` でstdoutから `result` メッセージまでを読み取る
-5. `utils.AssertOutput(t, output, patterns...)` で部分一致アサーションする
+1. Configure the SSE response sequence to return from `utils.StubAPIServer`, then call `Start()`
+2. Launch the CLI process with `utils.NewSession(t, stub.URL())`
+3. Send a user message in stream-json format to stdin via `s.Send(...)`
+4. Read from stdout up to the `result` message via `s.Read()`
+5. Assert with partial matching via `utils.AssertOutput(t, output, patterns...)`
 
-## レスポンスヘルパー
+## Response Helpers
 
-- `utils.TextResponse(text)` — テキスト応答のSSEイベント列を生成する
-- `utils.ToolUseResponse(toolID, toolName, input)` — ツール呼び出しのSSEイベント列を生成する（stop_reason: "tool_use"）
+- `utils.TextResponse(text)` — Generates SSE event sequence for a text response
+- `utils.ToolUseResponse(toolID, toolName, input)` — Generates SSE event sequence for a tool call (stop_reason: "tool_use")
 
-ツール利用シナリオでは `Responses` に複数のレスポンスを設定する。リクエスト順にレスポンスが消費され、超過分は最後のレスポンスが繰り返される。
+For tool-use scenarios, set multiple responses in `Responses`. Responses are consumed in request order; when exhausted, the last response is repeated.
 
 ## AssertOutput
 
-パターンはJSON部分一致。指定したフィールドが実際のメッセージに含まれていればマッチする。出力中でパターンを順序通りに探し、マッチしないメッセージはスキップされる。
+Patterns use JSON partial matching. A pattern matches if the specified fields are contained in the actual message. Patterns are searched in order within the output, and non-matching messages are skipped.
 
-# 前提・制約
+# Assumptions & Constraints
 
-- CLIへの入力は必ずstdin経由、出力は必ずstdout経由で行う。
-- CLIは `--dangerously-skip-permissions --verbose --no-session-persistence` 付きで起動される。
-- `ANTHROPIC_BASE_URL` 環境変数でスタブAPIに向ける。
-- 観測した形式を推測で固定しない。未知フィールドは無視してアサーションは部分一致で行う。
-- 利用言語はGo。`protocol_test.go` がメインの成果物。
+- All input to the CLI must go through stdin; all output must come through stdout.
+- The CLI is launched with `--dangerously-skip-permissions --verbose --no-session-persistence`.
+- The `ANTHROPIC_BASE_URL` environment variable points to the stub API.
+- Do not hard-code observed formats based on speculation. Ignore unknown fields and use partial matching for assertions.
+- The implementation language is Go. `protocol_test.go` is the main deliverable.

@@ -153,8 +153,8 @@ func extractType(msg json.RawMessage) string {
 	return s
 }
 
-// MustJSON は v をJSON文字列に変換する。
-// テストのアサーションパターン構築に使用する。
+// MustJSON converts v to a JSON string.
+// Used for building assertion patterns in tests.
 func MustJSON(v any) string {
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -167,8 +167,8 @@ func MustJSON(v any) string {
 // pattern in order. Each pattern is a JSON string produced by MustJSON.
 // The comparison is exact: all fields and array elements must match.
 // Messages not matching any pattern are skipped.
-// Any マッチャーセンチネルは型レベルの一致で判定される。
-// actual 側に存在し pattern 側に存在しないキーは、値が null であれば許容される。
+// Any matcher sentinels are matched at the type level.
+// Extra keys in actual that are not in the pattern are allowed if their value is null.
 func AssertOutput(t *testing.T, output []json.RawMessage, expectedPatterns ...string) {
 	t.Helper()
 
@@ -203,11 +203,11 @@ func AssertOutput(t *testing.T, output []json.RawMessage, expectedPatterns ...st
 // Extra keys in actual are allowed only if their value is null (nil).
 // All elements in arrays must match (same length).
 //
-// センチネル値の検出:
-//   - 文字列 "<any>"          → 任意の値にマッチ（型を問わない）
-//   - float64 -1              → 任意の float64 にマッチ
-//   - map に "<any>" キー     → 任意の map にマッチ
-//   - 配列 ["<any>"]          → 任意の配列にマッチ
+// Sentinel value detection:
+//   - string "<any>"          → matches any value (regardless of type)
+//   - float64 -1              → matches any float64
+//   - map with "<any>" key    → matches any map
+//   - array ["<any>"]         → matches any array
 func jsonExact(actual, expect any) bool {
 	// String sentinel: "<any>" matches any value regardless of type.
 	if s, ok := expect.(string); ok && s == "<any>" {

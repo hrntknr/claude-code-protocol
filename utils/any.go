@@ -1,25 +1,25 @@
 package utils
 
 // ---------------------------------------------------------------------------
-// Any マッチャー — テストアサーション用のセンチネル値
+// Any matchers — sentinel values for test assertions
 // ---------------------------------------------------------------------------
-// AssertOutput の完全一致比較で、動的な値（セッションID、所要時間など）を
-// 型レベルでマッチさせるために使用する。各センチネルはフィールドの実際の型に
-// 合わせた値を持ち、JSON ラウンドトリップ後に比較ロジックが認識する。
+// Used in AssertOutput's exact matching to match dynamic values (session ID,
+// duration, etc.) at the type level. Each sentinel holds a value matching the
+// field's actual type, recognized by the comparison logic after JSON round-trip.
 
-// AnyString は任意の JSON 値にマッチする。
-// string 型フィールドにそのまま代入できる。
+// AnyString matches any JSON value.
+// Can be assigned directly to string fields.
 const AnyString = "<any>"
 
-// AnyNumber は任意の JSON 数値にマッチする。
-// float64 型フィールドに代入できる。値 -1 はセンチネルとして扱われる
-// （duration, cost, turns 等は常に非負のため安全）。
+// AnyNumber matches any JSON number.
+// Can be assigned to float64 fields. The value -1 is used as a sentinel
+// (safe because duration, cost, turns, etc. are always non-negative).
 var AnyNumber float64 = -1
 
-// AnyStringSlice は任意の JSON 配列にマッチする。
-// []string 型フィールドに代入できる。
+// AnyStringSlice matches any JSON array.
+// Can be assigned to []string fields.
 var AnyStringSlice = []string{"<any>"}
 
-// AnyMap は任意の JSON オブジェクトにマッチする。
-// map[string]any 型フィールドに代入できる。
+// AnyMap matches any JSON object.
+// Can be assigned to map[string]any fields.
 var AnyMap = map[string]any{"<any>": true}

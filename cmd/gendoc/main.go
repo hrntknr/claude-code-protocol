@@ -19,26 +19,24 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 
 	ccprotocol "github.com/hrntknr/claudecodeprotocol"
+	"github.com/hrntknr/claudecodeprotocol/utils"
 )
 
 func main() {
 	root := findProjectRoot()
 
 	docFile := filepath.Join(root, "protocol.go")
-	enums := parseEnumTypes(docFile)
-	structs := parseStructTypes(docFile)
 	msgFuncs := parseMessageFuncs(docFile)
 	scenarios := parseScenarios(filepath.Join(root, "protocol_test.go"))
 
 	var buf strings.Builder
 	writeHeader(&buf)
 	writeScenarioSection(&buf, scenarios)
-	writeSchemaSection(&buf, enums, structs, msgFuncs)
+	writeMessageSection(&buf, msgFuncs)
 
 	outPath := filepath.Join(root, "PROTOCOL.md")
 	if err := os.WriteFile(outPath, []byte(buf.String()), 0644); err != nil {
@@ -72,256 +70,6 @@ func findProjectRoot() string {
 }
 
 // ---------------------------------------------------------------------------
-// Enum parsing (protocol.go)
-// ---------------------------------------------------------------------------
-
-// enumType represents an enum type with its constants.
-type enumType struct {
-	name    string        // e.g. "MessageType"
-	doc     string        // type doc comment
-	consts  []enumConst   // constants in the const block
-}
-
-// enumConst represents a single constant in a const block.
-type enumConst struct {
-	name    string // e.g. "TypeSystem"
-	value   string // e.g. "system"
-	comment string // doc comment
-}
-
-// knownEnumTypes lists the enum type names we want to extract, in order.
-var knownEnumTypes = []string{"MessageType", "Subtype", "ContentBlockType"}
-
-func parseEnumTypes(filename string) []enumType {
-	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "parse %s: %v\n", filename, err)
-		os.Exit(1)
-	}
-
-	// Collect type declarations for enum types (type X string).
-	typeDoc := make(map[string]string) // type name -> doc comment
-	for _, decl := range f.Decls {
-		gd, ok := decl.(*ast.GenDecl)
-		if !ok || gd.Tok != token.TYPE {
-			continue
-		}
-		for _, spec := range gd.Specs {
-			ts, ok := spec.(*ast.TypeSpec)
-			if !ok {
-				continue
-			}
-			if isKnownEnum(ts.Name.Name) {
-				typeDoc[ts.Name.Name] = cleanDoc(gd.Doc.Text())
-			}
-		}
-	}
-
-	// Collect const blocks. We associate constants with their enum type
-	// by looking at the value spec type.
-	enumMap := make(map[string][]enumConst) // type name -> consts
-
-	for _, decl := range f.Decls {
-		gd, ok := decl.(*ast.GenDecl)
-		if !ok || gd.Tok != token.CONST {
-			continue
-		}
-		for _, spec := range gd.Specs {
-			vs, ok := spec.(*ast.ValueSpec)
-			if !ok || len(vs.Names) == 0 {
-				continue
-			}
-
-			// Determine the enum type from the type annotation.
-			typeName := ""
-			if vs.Type != nil {
-				if ident, ok := vs.Type.(*ast.Ident); ok {
-					typeName = ident.Name
-				}
-			}
-			if typeName == "" || !isKnownEnum(typeName) {
-				continue
-			}
-
-			// Extract the string value.
-			value := ""
-			if len(vs.Values) > 0 {
-				if bl, ok := vs.Values[0].(*ast.BasicLit); ok {
-					value = strings.Trim(bl.Value, `"`)
-				}
-			}
-
-			// Doc comment for the constant.
-			comment := cleanDoc(vs.Doc.Text())
-
-			enumMap[typeName] = append(enumMap[typeName], enumConst{
-				name:    vs.Names[0].Name,
-				value:   value,
-				comment: comment,
-			})
-		}
-	}
-
-	// Build result in the order of knownEnumTypes.
-	var result []enumType
-	for _, name := range knownEnumTypes {
-		et := enumType{
-			name:   name,
-			doc:    typeDoc[name],
-			consts: enumMap[name],
-		}
-		result = append(result, et)
-	}
-	return result
-}
-
-func isKnownEnum(name string) bool {
-	for _, n := range knownEnumTypes {
-		if n == name {
-			return true
-		}
-	}
-	return false
-}
-
-// ---------------------------------------------------------------------------
-// Struct type parsing (protocol.go)
-// ---------------------------------------------------------------------------
-
-// structType represents a struct type definition.
-type structType struct {
-	name     string
-	doc      string // full doc comment
-	fields   []structField
-	sections []docSection // parsed # type=... sections from doc comment
-}
-
-// structField represents a struct field.
-type structField struct {
-	name    string
-	jsonTag string
-	comment string
-}
-
-// docSection represents a `# type=...` section in a doc comment.
-type docSection struct {
-	heading string   // e.g. "type=system, subtype=init"
-	body    string   // the rest of the section content
-}
-
-// knownStructTypes lists the struct type names we want to extract, in order.
-var knownStructTypes = []string{"Message", "MessageBody", "ContentBlock", "ResultError", "PermissionDenial"}
-
-func parseStructTypes(filename string) []structType {
-	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "parse %s: %v\n", filename, err)
-		os.Exit(1)
-	}
-
-	structMap := make(map[string]structType)
-
-	for _, decl := range f.Decls {
-		gd, ok := decl.(*ast.GenDecl)
-		if !ok || gd.Tok != token.TYPE {
-			continue
-		}
-		for _, spec := range gd.Specs {
-			ts, ok := spec.(*ast.TypeSpec)
-			if !ok {
-				continue
-			}
-			if !isKnownStruct(ts.Name.Name) {
-				continue
-			}
-
-			st := structType{
-				name: ts.Name.Name,
-				doc:  cleanDoc(gd.Doc.Text()),
-			}
-
-			// Parse doc sections.
-			st.sections = parseDocSections(st.doc)
-
-			// Extract struct fields.
-			if astStruct, ok := ts.Type.(*ast.StructType); ok {
-				for _, field := range astStruct.Fields.List {
-					if len(field.Names) == 0 {
-						continue
-					}
-					sf := structField{
-						name:    field.Names[0].Name,
-						comment: strings.TrimSpace(field.Comment.Text()),
-					}
-					if field.Tag != nil {
-						sf.jsonTag = extractJSONTag(field.Tag.Value)
-					}
-					st.fields = append(st.fields, sf)
-				}
-			}
-
-			structMap[ts.Name.Name] = st
-		}
-	}
-
-	// Build result in order.
-	var result []structType
-	for _, name := range knownStructTypes {
-		if st, ok := structMap[name]; ok {
-			result = append(result, st)
-		}
-	}
-	return result
-}
-
-func isKnownStruct(name string) bool {
-	for _, n := range knownStructTypes {
-		if n == name {
-			return true
-		}
-	}
-	return false
-}
-
-// parseDocSections splits a doc comment into the preamble (before any # heading)
-// and sections delimited by lines starting with "# ".
-func parseDocSections(doc string) []docSection {
-	lines := strings.Split(doc, "\n")
-
-	var sections []docSection
-	var currentHeading string
-	var currentBody []string
-	inSection := false
-
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "# ") {
-			// Save previous section if any.
-			if inSection {
-				sections = append(sections, docSection{
-					heading: currentHeading,
-					body:    strings.TrimSpace(strings.Join(currentBody, "\n")),
-				})
-			}
-			currentHeading = strings.TrimPrefix(trimmed, "# ")
-			currentBody = nil
-			inSection = true
-		} else if inSection {
-			currentBody = append(currentBody, line)
-		}
-	}
-	// Save last section.
-	if inSection {
-		sections = append(sections, docSection{
-			heading: currentHeading,
-			body:    strings.TrimSpace(strings.Join(currentBody, "\n")),
-		})
-	}
-
-	return sections
-}
 
 // ---------------------------------------------------------------------------
 // Message function parsing (protocol.go)
@@ -384,20 +132,6 @@ func extractFuncDocSection(doc string) (heading, body string) {
 	return
 }
 
-func extractJSONTag(rawTag string) string {
-	re := regexp.MustCompile(`json:"([^"]*)"`)
-	m := re.FindStringSubmatch(rawTag)
-	if len(m) < 2 {
-		return ""
-	}
-	parts := strings.SplitN(m[1], ",", 2)
-	return parts[0]
-}
-
-func cleanDoc(doc string) string {
-	return strings.TrimSpace(doc)
-}
-
 // ---------------------------------------------------------------------------
 // Scenario parsing (protocol_test.go)
 // ---------------------------------------------------------------------------
@@ -411,8 +145,9 @@ type scenario struct {
 
 // assertPattern represents a single MustJSON(NewMessage*(...)) pattern from AssertOutput.
 type assertPattern struct {
-	label string // display label, e.g. "system/init", "assistant(tool_use:Bash)"
-	json  string // actual JSON output from MustJSON
+	label   string // display label, e.g. "system/init", "assistant(tool_use:Bash)"
+	heading string // corresponding ##### heading, e.g. "system/init", "assistant/tool_use"
+	json    string // actual JSON output from MustJSON
 }
 
 func parseScenarios(filename string) []scenario {
@@ -497,14 +232,18 @@ func isAssertOutputCall(call *ast.CallExpr) bool {
 	return ident.Name == "utils" && sel.Sel.Name == "AssertOutput"
 }
 
-// extractAssertPattern extracts label and JSON from a MustJSON(NewMessage*(...)) expression.
+// extractAssertPattern extracts label and JSON from a utils.MustJSON(NewMessage*(...)) expression.
 func extractAssertPattern(expr ast.Expr) (assertPattern, bool) {
 	outer, ok := expr.(*ast.CallExpr)
 	if !ok || len(outer.Args) != 1 {
 		return assertPattern{}, false
 	}
-	outerIdent, ok := outer.Fun.(*ast.Ident)
-	if !ok || outerIdent.Name != "MustJSON" {
+	sel, ok := outer.Fun.(*ast.SelectorExpr)
+	if !ok || sel.Sel.Name != "MustJSON" {
+		return assertPattern{}, false
+	}
+	ident, ok := sel.X.(*ast.Ident)
+	if !ok || ident.Name != "utils" {
 		return assertPattern{}, false
 	}
 	inner, ok := outer.Args[0].(*ast.CallExpr)
@@ -515,58 +254,58 @@ func extractAssertPattern(expr ast.Expr) (assertPattern, bool) {
 	if !ok {
 		return assertPattern{}, false
 	}
-	label, jsonStr := evalConstructor(innerIdent.Name, inner.Args)
-	return assertPattern{label: label, json: jsonStr}, true
+	label, heading, jsonStr := evalConstructor(innerIdent.Name, inner.Args)
+	return assertPattern{label: label, heading: heading, json: jsonStr}, true
 }
 
 // evalConstructor maps a NewMessage* constructor name and its AST arguments
-// to a display label and JSON string by actually calling the constructor.
-func evalConstructor(funcName string, args []ast.Expr) (label, jsonStr string) {
+// to a display label, heading (matching ##### in the generated doc), and JSON string.
+func evalConstructor(funcName string, args []ast.Expr) (label, heading, jsonStr string) {
 	switch funcName {
 	case "NewMessageSystemInit":
-		return "system/init",
-			ccprotocol.MustJSON(ccprotocol.NewMessageSystemInit())
+		return "system/init", "system/init",
+			utils.MustJSON(ccprotocol.NewMessageSystemInit())
 	case "NewMessageSystemStatus":
 		mode := extractStringLit(args[0])
-		return "system/status(" + mode + ")",
-			ccprotocol.MustJSON(ccprotocol.NewMessageSystemStatus(mode))
+		return "system/status(" + mode + ")", "system/status",
+			utils.MustJSON(ccprotocol.NewMessageSystemStatus(mode))
 	case "NewMessageAssistantText":
 		text := extractStringLit(args[0])
-		return "assistant(text)",
-			ccprotocol.MustJSON(ccprotocol.NewMessageAssistantText(text))
+		return "assistant(text)", "assistant/text",
+			utils.MustJSON(ccprotocol.NewMessageAssistantText(text))
 	case "NewMessageAssistantToolUse":
 		name := extractStringLit(args[0])
-		return "assistant(tool_use:" + name + ")",
-			ccprotocol.MustJSON(ccprotocol.NewMessageAssistantToolUse(name))
+		return "assistant(tool_use:" + name + ")", "assistant/tool_use",
+			utils.MustJSON(ccprotocol.NewMessageAssistantToolUse(name))
 	case "NewMessageAssistantThinking":
 		thinking := extractStringLit(args[0])
-		return "assistant(thinking)",
-			ccprotocol.MustJSON(ccprotocol.NewMessageAssistantThinking(thinking))
+		return "assistant(thinking)", "assistant/thinking",
+			utils.MustJSON(ccprotocol.NewMessageAssistantThinking(thinking))
 	case "NewMessageUserToolResult":
-		return "user(tool_result)",
-			ccprotocol.MustJSON(ccprotocol.NewMessageUserToolResult())
+		return "user(tool_result)", "user/tool_result",
+			utils.MustJSON(ccprotocol.NewMessageUserToolResult())
 	case "NewMessageUserToolResultError":
-		return "user(tool_result:error)",
-			ccprotocol.MustJSON(ccprotocol.NewMessageUserToolResultError())
+		return "user(tool_result:error)", "user/tool_result, is_error=true",
+			utils.MustJSON(ccprotocol.NewMessageUserToolResultError())
 	case "NewMessageResultSuccess":
 		result := ""
 		if len(args) > 0 {
 			result = extractStringLit(args[0])
 		}
-		return "result/success",
-			ccprotocol.MustJSON(ccprotocol.NewMessageResultSuccess(result))
+		return "result/success", "result/success",
+			utils.MustJSON(ccprotocol.NewMessageResultSuccess(result))
 	case "NewMessageResultSuccessIsError":
-		return "result/success(is_error:true)",
-			ccprotocol.MustJSON(ccprotocol.NewMessageResultSuccessIsError())
+		return "result/success(is_error:true)", "result/success, is_error=true",
+			utils.MustJSON(ccprotocol.NewMessageResultSuccessIsError())
 	case "NewMessageResultSuccessWithDenials":
 		denials := extractPermissionDenials(args)
-		return "result/success(permission_denials)",
-			ccprotocol.MustJSON(ccprotocol.NewMessageResultSuccessWithDenials(denials...))
+		return "result/success(permission_denials)", "result/success, permission_denials",
+			utils.MustJSON(ccprotocol.NewMessageResultSuccessWithDenials(denials...))
 	case "NewMessageResultErrorDuringExecution":
-		return "result/error_during_execution",
-			ccprotocol.MustJSON(ccprotocol.NewMessageResultErrorDuringExecution())
+		return "result/error_during_execution", "result/error_during_execution",
+			utils.MustJSON(ccprotocol.NewMessageResultErrorDuringExecution())
 	default:
-		return funcName, "{}"
+		return funcName, "", "{}"
 	}
 }
 
@@ -626,16 +365,16 @@ func writeScenarioSection(buf *strings.Builder, scenarios []scenario) {
 		buf.WriteString("| direction | message | json |\n")
 		buf.WriteString("|-----------|---------|------|\n")
 
-		for i, turn := range sc.turns {
-			turnLabel := ""
-			if len(sc.turns) > 1 {
-				turnLabel = fmt.Sprintf(" %d", i+1)
-			}
+		for _, turn := range sc.turns {
 			inputJSON := `{"type":"user","message":{"role":"user","content":"..."}}`
-			buf.WriteString("| ←" + turnLabel + " | [user](#message) | `" + inputJSON + "` |\n")
+			buf.WriteString("| ← | user | `" + inputJSON + "` |\n")
 
 			for _, p := range turn {
-				buf.WriteString("| → | [" + p.label + "](#message) | `" + p.json + "` |\n")
+				if p.heading != "" {
+					buf.WriteString("| → | [" + p.label + "](#" + headingToAnchor(p.heading) + ") | `" + p.json + "` |\n")
+				} else {
+					buf.WriteString("| → | " + p.label + " | `" + p.json + "` |\n")
+				}
 			}
 		}
 
@@ -643,85 +382,12 @@ func writeScenarioSection(buf *strings.Builder, scenarios []scenario) {
 	}
 }
 
-func writeSchemaSection(buf *strings.Builder, enums []enumType, structs []structType, msgFuncs []messageFunc) {
-	buf.WriteString("## スキーマ\n\n")
-
-	// Enum constants subsection.
-	buf.WriteString("### enum 定数\n\n")
-	for _, et := range enums {
-		writeEnumType(buf, et)
+func writeMessageSection(buf *strings.Builder, msgFuncs []messageFunc) {
+	buf.WriteString("## メッセージ\n\n")
+	for _, mf := range msgFuncs {
+		buf.WriteString("### " + mf.heading + "\n\n")
+		buf.WriteString(godocToMarkdown(mf.body) + "\n\n")
 	}
-
-	// Type definitions subsection.
-	buf.WriteString("### 型定義\n\n")
-	for _, st := range structs {
-		writeStructType(buf, st, msgFuncs)
-	}
-}
-
-func writeEnumType(buf *strings.Builder, et enumType) {
-	buf.WriteString("#### " + et.name + "\n\n")
-
-	if et.doc != "" {
-		buf.WriteString(et.doc + "\n\n")
-	}
-
-	if len(et.consts) > 0 {
-		buf.WriteString("| 定数名 | 値 | 説明 |\n")
-		buf.WriteString("|--------|-----|------|\n")
-		for _, c := range et.consts {
-			buf.WriteString(fmt.Sprintf("| `%s` | `\"%s\"` | %s |\n", c.name, c.value, c.comment))
-		}
-		buf.WriteString("\n")
-	}
-}
-
-func writeStructType(buf *strings.Builder, st structType, msgFuncs []messageFunc) {
-	buf.WriteString("#### " + st.name + "\n\n")
-
-	// Write the preamble (doc text before the first # section).
-	preamble := extractPreamble(st.doc)
-	if preamble != "" {
-		buf.WriteString(preamble + "\n\n")
-	}
-
-	// Fields table.
-	if len(st.fields) > 0 {
-		buf.WriteString("| フィールド | JSON キー | 説明 |\n")
-		buf.WriteString("|-----------|-----------|------|\n")
-		for _, f := range st.fields {
-			buf.WriteString(fmt.Sprintf("| `%s` | `%s` | %s |\n", f.name, f.jsonTag, f.comment))
-		}
-		buf.WriteString("\n")
-	}
-
-	// Render # type=... sections as subsections.
-	for _, sec := range st.sections {
-		buf.WriteString("##### " + sec.heading + "\n\n")
-		buf.WriteString(godocToMarkdown(sec.body) + "\n\n")
-	}
-
-	// If this is Message, also write message constructor docs.
-	if st.name == "Message" {
-		for _, mf := range msgFuncs {
-			buf.WriteString("##### " + mf.heading + "\n\n")
-			buf.WriteString(godocToMarkdown(mf.body) + "\n\n")
-		}
-	}
-}
-
-// extractPreamble returns the doc text before the first "# " heading line.
-func extractPreamble(doc string) string {
-	lines := strings.Split(doc, "\n")
-	var preambleLines []string
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "# ") {
-			break
-		}
-		preambleLines = append(preambleLines, line)
-	}
-	return strings.TrimSpace(strings.Join(preambleLines, "\n"))
 }
 
 // godocToMarkdown converts godoc-formatted text to markdown.
@@ -780,6 +446,22 @@ func godocToMarkdown(doc string) string {
 	}
 
 	return strings.TrimRight(buf.String(), "\n")
+}
+
+// headingToAnchor converts a markdown heading to a GitHub-style anchor.
+// Lowercase, keep a-z 0-9 _ -, replace spaces with -, remove everything else.
+func headingToAnchor(heading string) string {
+	heading = strings.ToLower(heading)
+	var buf strings.Builder
+	for _, r := range heading {
+		switch {
+		case r >= 'a' && r <= 'z', r >= '0' && r <= '9', r == '_', r == '-':
+			buf.WriteRune(r)
+		case r == ' ':
+			buf.WriteRune('-')
+		}
+	}
+	return buf.String()
 }
 
 // skipFirstLine returns the doc text after the first line, trimmed.

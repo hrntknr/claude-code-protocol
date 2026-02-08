@@ -21,11 +21,11 @@ func TestSimpleTextResponse(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"say hello"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("say hello")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("Hello!")),
-		MustJSON(NewMessageResultSuccess("Hello!")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("Hello!")),
+		utils.MustJSON(NewMessageResultSuccess("Hello!")),
 	)
 }
 
@@ -46,11 +46,11 @@ func TestToolUseBash(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"run echo tool-use-test-output"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("run echo tool-use-test-output")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("The command printed: tool-use-test-output")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("The command printed: tool-use-test-output")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -76,11 +76,11 @@ func TestToolUseMultiStep(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"run two echo commands"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("run two echo commands")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("Both commands completed successfully.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("Both commands completed successfully.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -131,11 +131,11 @@ func TestTextAndToolUseInSameResponse(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"check and run combined"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("check and run combined")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("Done. The output was: combined-test")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("Done. The output was: combined-test")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -170,11 +170,11 @@ func TestParallelToolUse(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"run two commands in parallel"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("run two commands in parallel")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("Both commands ran: parallel-one and parallel-two")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("Both commands ran: parallel-one and parallel-two")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -191,18 +191,18 @@ func TestMultiTurnConversation(t *testing.T) {
 	defer s.Close()
 
 	// Turn 1
-	s.Send(`{"type":"user","message":{"role":"user","content":"first question"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("first question")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("First answer.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("First answer.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Turn 2
-	s.Send(`{"type":"user","message":{"role":"user","content":"second question"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("second question")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageAssistantText("Second answer.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageAssistantText("Second answer.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -217,15 +217,15 @@ func TestMaxTokensStopReason(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"generate a very long response"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("generate a very long response")))
 	// Observed: The CLI retries the max_tokens response multiple times,
 	// emitting the truncated text alternating with a synthetic "API Error"
 	// message about the max output token limit. Eventually it produces a
 	// result with subtype "success" but is_error true.
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("")),
-		MustJSON(NewMessageResultSuccessIsError()),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("")),
+		utils.MustJSON(NewMessageResultSuccessIsError()),
 	)
 }
 
@@ -243,15 +243,15 @@ func TestThinkingResponse(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"what is the answer?"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("what is the answer?")))
 	// Observed: Thinking blocks ARE emitted as a separate assistant message
 	// with content[0].type="thinking". Then the text block follows as another
 	// assistant message. Result contains only the text.
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantThinking("Let me think about this step by step...")),
-		MustJSON(NewMessageAssistantText("The answer is 42.")),
-		MustJSON(NewMessageResultSuccess("The answer is 42.")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantThinking("Let me think about this step by step...")),
+		utils.MustJSON(NewMessageAssistantText("The answer is 42.")),
+		utils.MustJSON(NewMessageResultSuccess("The answer is 42.")),
 	)
 }
 
@@ -281,11 +281,11 @@ func TestToolUseRead(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"read the test file"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("read the test file")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("The file contains: file-content-for-read-test")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("The file contains: file-content-for-read-test")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -309,11 +309,11 @@ func TestToolUseWrite(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"write a file"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("write a file")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("File created successfully.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("File created successfully.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Verify the file was actually written to disk.
@@ -354,11 +354,11 @@ func TestToolUseEdit(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"edit the file"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("edit the file")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("File edited successfully.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("File edited successfully.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Verify the file was actually modified.
@@ -397,11 +397,11 @@ func TestToolUseGlob(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"find txt files"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("find txt files")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("Found 2 text files.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("Found 2 text files.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -431,11 +431,11 @@ func TestToolUseGrep(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"search for target-pattern"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("search for target-pattern")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("Found the pattern in searchable.txt.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("Found the pattern in searchable.txt.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -458,11 +458,11 @@ func TestToolUseTodoWrite(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"create a todo list"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("create a todo list")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("Created a todo list with 2 items.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("Created a todo list with 2 items.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -499,11 +499,11 @@ func TestLongToolChain(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"read, edit, and verify the file"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("read, edit, and verify the file")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("Chain complete: read, edited, and verified.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("Chain complete: read, edited, and verified.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Verify the file was actually modified through the chain.
@@ -540,11 +540,11 @@ func TestThinkingWithToolUse(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"think and then run a command"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("think and then run a command")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("After thinking and running the command: thinking-tool-test")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("After thinking and running the command: thinking-tool-test")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -565,11 +565,11 @@ func TestRequestRecording(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"run a recorded command"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("run a recorded command")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("Done.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("Done.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Verify that the stub recorded at least 5 requests:
@@ -636,11 +636,11 @@ func TestToolUseNotebookEdit(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"add a cell to the notebook"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("add a cell to the notebook")))
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("Inserted a new cell into the notebook.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("Inserted a new cell into the notebook.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Verify the notebook was modified.
@@ -679,17 +679,17 @@ func TestToolUseAskUserQuestion(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"ask me a question"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("ask me a question")))
 	// Observed: In non-interactive stream-json mode, AskUserQuestion is emitted
 	// as an assistant tool_use, then a user tool_result with is_error:true
 	// (content "Answer questions?"). The API then returns the final text.
 	// The result includes a permission_denials array listing the denied tool.
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantToolUse("AskUserQuestion")),
-		MustJSON(NewMessageUserToolResultError()),
-		MustJSON(NewMessageAssistantText("You chose Go. Let me proceed with Go.")),
-		MustJSON(NewMessageResultSuccessWithDenials(PermissionDenial{ToolName: "AskUserQuestion"})),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantToolUse("AskUserQuestion")),
+		utils.MustJSON(NewMessageUserToolResultError()),
+		utils.MustJSON(NewMessageAssistantText("You chose Go. Let me proceed with Go.")),
+		utils.MustJSON(NewMessageResultSuccessWithDenials(PermissionDenial{ToolName: "AskUserQuestion"})),
 	)
 }
 
@@ -707,17 +707,17 @@ func TestToolUseEnterPlanMode(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"plan the implementation"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("plan the implementation")))
 	// Observed: EnterPlanMode emits the tool_use as an assistant message,
 	// then a system status message with permissionMode:"plan", then the
 	// user tool_result with plan mode instructions, then the final text.
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantToolUse("EnterPlanMode")),
-		MustJSON(NewMessageSystemStatus("plan")),
-		MustJSON(NewMessageUserToolResult()),
-		MustJSON(NewMessageAssistantText("I have entered plan mode. Let me explore the codebase.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantToolUse("EnterPlanMode")),
+		utils.MustJSON(NewMessageSystemStatus("plan")),
+		utils.MustJSON(NewMessageUserToolResult()),
+		utils.MustJSON(NewMessageAssistantText("I have entered plan mode. Let me explore the codebase.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -762,16 +762,16 @@ func TestToolUseWebFetch(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"fetch the test page"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("fetch the test page")))
 	// Observed: WebFetch upgrades HTTP to HTTPS, causing an SSL error when
 	// hitting the plain HTTP stub server. The CLI emits the tool_use, then
 	// a user tool_result with is_error:true containing the SSL error.
 	// The API then returns the next response as final text.
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantToolUse("WebFetch")),
-		MustJSON(NewMessageUserToolResultError()),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantToolUse("WebFetch")),
+		utils.MustJSON(NewMessageUserToolResultError()),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -795,14 +795,14 @@ func TestToolError(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"read a missing file"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("read a missing file")))
 	// The CLI should handle the tool error gracefully.
 	// The API receives the error as a tool_result with is_error=true,
 	// then returns a normal text response.
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("The file does not exist. Let me handle this error.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("The file does not exist. Let me handle this error.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -819,14 +819,14 @@ func TestAPIError(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"trigger an error"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("trigger an error")))
 	// Observed: When the API returns an SSE error event, the CLI emits a
 	// result with subtype "error_during_execution" and an "errors" array
 	// containing the error details. No assistant messages are emitted.
 	output := s.Read()
 	utils.AssertOutput(t, output,
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageResultErrorDuringExecution()),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageResultErrorDuringExecution()),
 	)
 }
 
@@ -845,14 +845,14 @@ func TestMultipleTextBlocks(t *testing.T) {
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"write two paragraphs"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("write two paragraphs")))
 	// Observed: Each text content block is emitted as a separate assistant
 	// message. The result contains only the LAST text block's content.
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantText("First paragraph.")),
-		MustJSON(NewMessageAssistantText("Second paragraph.")),
-		MustJSON(NewMessageResultSuccess("Second paragraph.")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantText("First paragraph.")),
+		utils.MustJSON(NewMessageAssistantText("Second paragraph.")),
+		utils.MustJSON(NewMessageResultSuccess("Second paragraph.")),
 	)
 }
 
@@ -888,16 +888,16 @@ func TestToolUseTeamCreate(t *testing.T) {
 	s := utils.NewSessionWithEnv(t, stub.URL(), agentTeamEnv())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"create a team"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("create a team")))
 	// Observed: TeamCreate emits the tool_use, then a tool_result containing
 	// JSON with team_name, team_file_path, and lead_agent_id. The tool_result
 	// is NOT an error (is_error is absent). Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantToolUse("TeamCreate")),
-		MustJSON(NewMessageUserToolResult()),
-		MustJSON(NewMessageAssistantText("Team created.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantToolUse("TeamCreate")),
+		utils.MustJSON(NewMessageUserToolResult()),
+		utils.MustJSON(NewMessageAssistantText("Team created.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Clean up team files if created.
@@ -920,16 +920,16 @@ func TestToolUseTeamDelete(t *testing.T) {
 	s := utils.NewSessionWithEnv(t, stub.URL(), agentTeamEnv())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"delete the team"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("delete the team")))
 	// Observed: TeamDelete without an active team does NOT error. It returns
 	// a tool_result with success:true and message "No team name found, nothing
 	// to clean up". Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantToolUse("TeamDelete")),
-		MustJSON(NewMessageUserToolResult()),
-		MustJSON(NewMessageAssistantText("Handled team deletion.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantToolUse("TeamDelete")),
+		utils.MustJSON(NewMessageUserToolResult()),
+		utils.MustJSON(NewMessageAssistantText("Handled team deletion.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -952,17 +952,17 @@ func TestToolUseSendMessage(t *testing.T) {
 	s := utils.NewSessionWithEnv(t, stub.URL(), agentTeamEnv())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"send a message"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("send a message")))
 	// Observed: SendMessage even without a team context does NOT error.
 	// It returns a tool_result with success:true containing routing info
 	// (sender: "team-lead", target: "@nonexistent-agent"). The message is
 	// written to a file-based inbox regardless. Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantToolUse("SendMessage")),
-		MustJSON(NewMessageUserToolResult()),
-		MustJSON(NewMessageAssistantText("Handled send message.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantToolUse("SendMessage")),
+		utils.MustJSON(NewMessageUserToolResult()),
+		utils.MustJSON(NewMessageAssistantText("Handled send message.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 }
 
@@ -998,18 +998,18 @@ func TestToolUseTaskSpawnTeammate(t *testing.T) {
 	s := utils.NewSessionWithEnv(t, stub.URL(), agentTeamEnv())
 	defer s.Close()
 
-	s.Send(`{"type":"user","message":{"role":"user","content":"create team and spawn a teammate"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("create team and spawn a teammate")))
 	// Observed: TeamCreate tool_result → Task tool_use → Task tool_result.
 	// The Task tool_result contains status "teammate_spawned" with agent details
 	// including agent_id, name, team_name, color, model. The teammate is spawned
 	// as a background process (in-process mode). Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantToolUse("TeamCreate")),
-		MustJSON(NewMessageUserToolResult()),
-		MustJSON(NewMessageAssistantToolUse("Task")),
-		MustJSON(NewMessageUserToolResult()),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantToolUse("TeamCreate")),
+		utils.MustJSON(NewMessageUserToolResult()),
+		utils.MustJSON(NewMessageAssistantToolUse("Task")),
+		utils.MustJSON(NewMessageUserToolResult()),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Clean up team files.
@@ -1044,25 +1044,25 @@ func TestAgentTeamLifecycle(t *testing.T) {
 	defer s.Close()
 
 	// Turn 1: Create team
-	s.Send(`{"type":"user","message":{"role":"user","content":"create a team called ` + teamName + `"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("create a team called " + teamName)))
 	// Observed: TeamCreate emits tool_use → tool_result → final text → result.
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageSystemInit()),
-		MustJSON(NewMessageAssistantToolUse("TeamCreate")),
-		MustJSON(NewMessageUserToolResult()),
-		MustJSON(NewMessageAssistantText("Team created successfully.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageSystemInit()),
+		utils.MustJSON(NewMessageAssistantToolUse("TeamCreate")),
+		utils.MustJSON(NewMessageUserToolResult()),
+		utils.MustJSON(NewMessageAssistantText("Team created successfully.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Turn 2: Delete team
-	s.Send(`{"type":"user","message":{"role":"user","content":"now delete the team"}}`)
+	s.Send(utils.MustJSON(NewMessageUserText("now delete the team")))
 	// Observed: TeamDelete in second turn emits init again (CLIのsession状態のリフレッシュ),
 	// then tool_use → tool_result with success:true and cleanup message → final text → result.
 	utils.AssertOutput(t, s.Read(),
-		MustJSON(NewMessageAssistantToolUse("TeamDelete")),
-		MustJSON(NewMessageUserToolResult()),
-		MustJSON(NewMessageAssistantText("Team deleted.")),
-		MustJSON(NewMessageResultSuccess("")),
+		utils.MustJSON(NewMessageAssistantToolUse("TeamDelete")),
+		utils.MustJSON(NewMessageUserToolResult()),
+		utils.MustJSON(NewMessageAssistantText("Team deleted.")),
+		utils.MustJSON(NewMessageResultSuccess("")),
 	)
 
 	// Clean up in case TeamDelete didn't work.

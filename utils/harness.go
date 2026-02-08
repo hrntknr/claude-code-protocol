@@ -13,9 +13,12 @@ import (
 
 // Session manages an interactive CLI process for multi-turn testing.
 type Session struct {
-	t       *testing.T
-	cmd     *exec.Cmd
-	stdin   interface{ Write([]byte) (int, error); Close() error }
+	t     *testing.T
+	cmd   *exec.Cmd
+	stdin interface {
+		Write([]byte) (int, error)
+		Close() error
+	}
 	scanner *bufio.Scanner
 	stderr  *strings.Builder
 }
@@ -148,6 +151,16 @@ func extractType(msg json.RawMessage) string {
 		return ""
 	}
 	return s
+}
+
+// MustJSON は v をJSON文字列に変換する。
+// テストのアサーションパターン構築に使用する。
+func MustJSON(v any) string {
+	b, err := json.Marshal(v)
+	if err != nil {
+		panic("MustJSON: " + err.Error())
+	}
+	return string(b)
 }
 
 // AssertOutput verifies that the output contains messages matching each expected

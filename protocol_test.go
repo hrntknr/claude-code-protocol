@@ -3,7 +3,7 @@ package ccprotocol_test
 import (
 	"testing"
 
-	"github.com/hrntknr/ccprotocol/utils"
+	"github.com/hrntknr/claudecodeprotocol/utils"
 )
 
 func TestSimpleTextResponse(t *testing.T) {

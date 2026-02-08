@@ -1,3 +1,3 @@
-module github.com/hrntknr/ccprotocol
+module github.com/hrntknr/claudecodeprotocol
 
 go 1.25.6

@@ -5,25 +5,209 @@
 
 ## Permission mode change via set_permission_mode control request
 
-| direction | message | json |
-|-----------|---------|------|
-| <- | [user](../README.md#user) | `{"type":"user","message":{"role":"user","content":"hello"}}` |
-| -> | [system/init](../README.md#systeminit) | `{"type":"system","subtype":"init","cwd":"","session_id":"","tools":[],"mcp_servers":[],"model":"","permissionMode":"bypassPermissions","slash_commands":[],"apiKeySource":"","claude_code_version":"","output_style":"","agents":[],"skills":[],"plugins":[],"uuid":""}` |
-| -> | [result/success](../README.md#resultsuccess) | `{"type":"result","subtype":"success","is_error":false,"duration_ms":0,"duration_api_ms":0,"num_turns":0,"result":"Ready.","session_id":"","total_cost_usd":0,"usage":{},"modelUsage":{},"permission_denials":[],"uuid":""}` |
-| <- | [user](../README.md#user) | `{"type":"user","message":{"role":"user","content":"hi"}}` |
-| -> | [control_response](../README.md#control_response) | `{"type":"control_response","response":{}}` |
-| -> | [system/init](../README.md#systeminit) | `{"type":"system","subtype":"init","cwd":"","session_id":"","tools":[],"mcp_servers":[],"model":"","permissionMode":"plan","slash_commands":[],"apiKeySource":"","claude_code_version":"","output_style":"","agents":[],"skills":[],"plugins":[],"uuid":""}` |
-| -> | [result/success](../README.md#resultsuccess) | `{"type":"result","subtype":"success","is_error":false,"duration_ms":0,"duration_api_ms":0,"num_turns":0,"result":"","session_id":"","total_cost_usd":0,"usage":{},"modelUsage":{},"permission_denials":[],"uuid":""}` |
+<table>
+<tr><th>direction</th><th>message</th><th>json</th></tr>
+<tr><td>&lt;-</td><td><a href="../README.md#user">user</a></td><td><pre lang="json">
+{
+  "type": "user",
+  "message": {
+    "role": "user",
+    "content": "hello"
+  }
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
+{
+  "type": "system",
+  "subtype": "init",
+  "cwd": "",
+  "session_id": "",
+  "tools": [],
+  "mcp_servers": [],
+  "model": "",
+  "permissionMode": "bypassPermissions",
+  "slash_commands": [],
+  "apiKeySource": "",
+  "claude_code_version": "",
+  "output_style": "",
+  "agents": [],
+  "skills": [],
+  "plugins": [],
+  "uuid": ""
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 0,
+  "duration_api_ms": 0,
+  "num_turns": 0,
+  "result": "Ready.",
+  "session_id": "",
+  "total_cost_usd": 0,
+  "usage": {},
+  "modelUsage": {},
+  "permission_denials": [],
+  "uuid": ""
+}
+</pre></td></tr>
+<tr><td>&lt;-</td><td><a href="../README.md#user">user</a></td><td><pre lang="json">
+{
+  "type": "user",
+  "message": {
+    "role": "user",
+    "content": "hi"
+  }
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#control_response">control_response</a></td><td><pre lang="json">
+{
+  "type": "control_response",
+  "response": {}
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
+{
+  "type": "system",
+  "subtype": "init",
+  "cwd": "",
+  "session_id": "",
+  "tools": [],
+  "mcp_servers": [],
+  "model": "",
+  "permissionMode": "plan",
+  "slash_commands": [],
+  "apiKeySource": "",
+  "claude_code_version": "",
+  "output_style": "",
+  "agents": [],
+  "skills": [],
+  "plugins": [],
+  "uuid": ""
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 0,
+  "duration_api_ms": 0,
+  "num_turns": 0,
+  "result": "",
+  "session_id": "",
+  "total_cost_usd": 0,
+  "usage": {},
+  "modelUsage": {},
+  "permission_denials": [],
+  "uuid": ""
+}
+</pre></td></tr>
+</table>
 
 ## Model change via set_model control request
 
-| direction | message | json |
-|-----------|---------|------|
-| <- | [user](../README.md#user) | `{"type":"user","message":{"role":"user","content":"hello"}}` |
-| -> | [system/init](../README.md#systeminit) | `{"type":"system","subtype":"init","cwd":"","session_id":"","tools":[],"mcp_servers":[],"model":"","permissionMode":"bypassPermissions","slash_commands":[],"apiKeySource":"","claude_code_version":"","output_style":"","agents":[],"skills":[],"plugins":[],"uuid":""}` |
-| -> | [result/success](../README.md#resultsuccess) | `{"type":"result","subtype":"success","is_error":false,"duration_ms":0,"duration_api_ms":0,"num_turns":0,"result":"Ready.","session_id":"","total_cost_usd":0,"usage":{},"modelUsage":{},"permission_denials":[],"uuid":""}` |
-| <- | [user](../README.md#user) | `{"type":"user","message":{"role":"user","content":"hi"}}` |
-| -> | [control_response](../README.md#control_response) | `{"type":"control_response","response":{}}` |
-| -> | [system/init](../README.md#systeminit) | `{"type":"system","subtype":"init","cwd":"","session_id":"","tools":[],"mcp_servers":[],"model":"","permissionMode":"bypassPermissions","slash_commands":[],"apiKeySource":"","claude_code_version":"","output_style":"","agents":[],"skills":[],"plugins":[],"uuid":""}` |
-| -> | [result/success](../README.md#resultsuccess) | `{"type":"result","subtype":"success","is_error":false,"duration_ms":0,"duration_api_ms":0,"num_turns":0,"result":"","session_id":"","total_cost_usd":0,"usage":{},"modelUsage":{},"permission_denials":[],"uuid":""}` |
+<table>
+<tr><th>direction</th><th>message</th><th>json</th></tr>
+<tr><td>&lt;-</td><td><a href="../README.md#user">user</a></td><td><pre lang="json">
+{
+  "type": "user",
+  "message": {
+    "role": "user",
+    "content": "hello"
+  }
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
+{
+  "type": "system",
+  "subtype": "init",
+  "cwd": "",
+  "session_id": "",
+  "tools": [],
+  "mcp_servers": [],
+  "model": "",
+  "permissionMode": "bypassPermissions",
+  "slash_commands": [],
+  "apiKeySource": "",
+  "claude_code_version": "",
+  "output_style": "",
+  "agents": [],
+  "skills": [],
+  "plugins": [],
+  "uuid": ""
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 0,
+  "duration_api_ms": 0,
+  "num_turns": 0,
+  "result": "Ready.",
+  "session_id": "",
+  "total_cost_usd": 0,
+  "usage": {},
+  "modelUsage": {},
+  "permission_denials": [],
+  "uuid": ""
+}
+</pre></td></tr>
+<tr><td>&lt;-</td><td><a href="../README.md#user">user</a></td><td><pre lang="json">
+{
+  "type": "user",
+  "message": {
+    "role": "user",
+    "content": "hi"
+  }
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#control_response">control_response</a></td><td><pre lang="json">
+{
+  "type": "control_response",
+  "response": {}
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
+{
+  "type": "system",
+  "subtype": "init",
+  "cwd": "",
+  "session_id": "",
+  "tools": [],
+  "mcp_servers": [],
+  "model": "",
+  "permissionMode": "bypassPermissions",
+  "slash_commands": [],
+  "apiKeySource": "",
+  "claude_code_version": "",
+  "output_style": "",
+  "agents": [],
+  "skills": [],
+  "plugins": [],
+  "uuid": ""
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 0,
+  "duration_api_ms": 0,
+  "num_turns": 0,
+  "result": "",
+  "session_id": "",
+  "total_cost_usd": 0,
+  "usage": {},
+  "modelUsage": {},
+  "permission_denials": [],
+  "uuid": ""
+}
+</pre></td></tr>
+</table>
 

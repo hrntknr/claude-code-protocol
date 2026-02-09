@@ -556,6 +556,71 @@ func evalExpressions(root string, sources []string) []string {
 // JSON simplification (sentinel -> empty value)
 // ---------------------------------------------------------------------------
 
+// formatJSON pretty-prints a compact JSON string with 2-space indentation,
+// preserving the original key order. It scans raw bytes directly instead of
+// unmarshal/marshal (which would sort keys).
+func formatJSON(src string) string {
+	var buf strings.Builder
+	indent := 0
+	inString := false
+	escaped := false
+	n := len(src)
+
+	writeIndent := func() {
+		buf.WriteByte('\n')
+		for i := 0; i < indent; i++ {
+			buf.WriteString("  ")
+		}
+	}
+
+	for i := 0; i < n; i++ {
+		c := src[i]
+		if escaped {
+			buf.WriteByte(c)
+			escaped = false
+			continue
+		}
+		if c == '\\' && inString {
+			buf.WriteByte(c)
+			escaped = true
+			continue
+		}
+		if c == '"' {
+			inString = !inString
+			buf.WriteByte(c)
+			continue
+		}
+		if inString {
+			buf.WriteByte(c)
+			continue
+		}
+		switch c {
+		case '{', '[':
+			buf.WriteByte(c)
+			// Check if empty
+			if i+1 < n && (src[i+1] == '}' || src[i+1] == ']') {
+				buf.WriteByte(src[i+1])
+				i++
+			} else {
+				indent++
+				writeIndent()
+			}
+		case '}', ']':
+			indent--
+			writeIndent()
+			buf.WriteByte(c)
+		case ',':
+			buf.WriteByte(c)
+			writeIndent()
+		case ':':
+			buf.WriteString(": ")
+		default:
+			buf.WriteByte(c)
+		}
+	}
+	return buf.String()
+}
+
 // simplifyJSON replaces sentinel values in a compact JSON string with empty values.
 // Input is always compact JSON from json.Marshal, so string replacement preserves key order.
 // json.Marshal escapes <> to \u003c/\u003e, so sentinels use the escaped form.
@@ -590,19 +655,31 @@ func writeIndexTable(buf *strings.Builder, files []testFileScenarios) {
 func writeScenarioSection(buf *strings.Builder, scenarios []scenario) {
 	for _, sc := range scenarios {
 		buf.WriteString("## " + sc.title + "\n\n")
-		buf.WriteString("| direction | message | json |\n")
-		buf.WriteString("|-----------|---------|------|\n")
+		buf.WriteString("<table>\n")
+		buf.WriteString("<tr><th>direction</th><th>message</th><th>json</th></tr>\n")
 
 		for _, turn := range sc.turns {
-			buf.WriteString("| <- | [" + turn.input.label + "](../README.md#" + headingToAnchor(turn.input.heading) + ") | `" + turn.input.json + "` |\n")
-
+			writeScenarioRow(buf, "&lt;-", turn.input)
 			for _, p := range turn.outputs {
-				buf.WriteString("| -> | [" + p.label + "](../README.md#" + headingToAnchor(p.heading) + ") | `" + p.json + "` |\n")
+				writeScenarioRow(buf, "-&gt;", p)
 			}
 		}
 
-		buf.WriteString("\n")
+		buf.WriteString("</table>\n\n")
 	}
+}
+
+func writeScenarioRow(buf *strings.Builder, dir string, p assertPattern) {
+	buf.WriteString("<tr><td>" + dir + "</td>")
+	buf.WriteString("<td><a href=\"../README.md#" + headingToAnchor(p.heading) + "\">" + p.label + "</a></td>")
+	buf.WriteString("<td><pre lang=\"json\">\n" + htmlEscape(formatJSON(p.json)) + "\n</pre></td></tr>\n")
+}
+
+func htmlEscape(s string) string {
+	s = strings.ReplaceAll(s, "&", "&amp;")
+	s = strings.ReplaceAll(s, "<", "&lt;")
+	s = strings.ReplaceAll(s, ">", "&gt;")
+	return s
 }
 
 func writeMessageSection(buf *strings.Builder, msgTypes []messageType) {

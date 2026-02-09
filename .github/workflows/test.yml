@@ -1,0 +1,44 @@
+name: Regression Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  versions:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.versions.outputs.matrix }}
+    steps:
+      - name: Get latest 3 Claude Code versions
+        id: versions
+        run: |
+          matrix=$(npm view @anthropic-ai/claude-code versions --json | jq -c '[ .[-3:][] ]')
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: versions
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        claude-version: ${{ fromJson(needs.versions.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Claude Code v${{ matrix.claude-version }}
+        run: npm install -g @anthropic-ai/claude-code@${{ matrix.claude-version }}
+      - name: Run tests
+        run: go test -v -timeout 600s ./...
+        env:
+          ANTHROPIC_API_KEY: dummy

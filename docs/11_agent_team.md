@@ -1,5 +1,7 @@
 # Agent Team
 
+> Requires: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
+
 ## Team creation via the TeamCreate tool
 
 | direction | message | json |

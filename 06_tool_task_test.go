@@ -1,3 +1,4 @@
+// > Requires: `CLAUDE_CODE_ENABLE_TASKS=1`
 package ccprotocol_test
 
 import (
@@ -10,7 +11,7 @@ import (
 
 const enableTasksEnv = "CLAUDE_CODE_ENABLE_TASKS=1"
 
-// Task management tools enabled via CLAUDE_CODE_ENABLE_TASKS=1
+// Task management tools replace TodoWrite
 func TestTaskToolsEnabled(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.TextResponse("OK"),
@@ -61,7 +62,7 @@ func TestTaskToolsEnabled(t *testing.T) {
 	}
 }
 
-// TaskCreate tool with CLAUDE_CODE_ENABLE_TASKS=1
+// TaskCreate tool invocation
 func TestToolUseTaskCreate(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: utils.WithInit(
 		utils.ToolUseResponse("toolu_tc_001", "TaskCreate", map[string]any{
@@ -168,7 +169,7 @@ func TestToolUseTaskCreate(t *testing.T) {
 	)
 }
 
-// TaskList tool with CLAUDE_CODE_ENABLE_TASKS=1
+// TaskList tool invocation
 func TestToolUseTaskList(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: utils.WithInit(
 		utils.ToolUseResponse("toolu_tl_001", "TaskList", map[string]any{}),
@@ -261,6 +262,217 @@ func TestToolUseTaskList(t *testing.T) {
 			DurationApiMs:     utils.AnyNumber,
 			NumTurns:          utils.AnyNumber,
 			Result:            "No tasks found.",
+			SessionID:         utils.AnyString,
+			TotalCostUSD:      utils.AnyNumber,
+			Usage:             utils.AnyMap,
+			ModelUsage:        utils.AnyMap,
+			PermissionDenials: []PermissionDenial{},
+			UUID:              utils.AnyString,
+		}),
+	)
+}
+
+// TaskGet tool invocation
+func TestToolUseTaskGet(t *testing.T) {
+	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+		utils.ToolUseResponse("toolu_tg_001", "TaskGet", map[string]any{
+			"taskId": "1",
+		}),
+		utils.TextResponse("Task details retrieved."),
+	)}
+	stub.Start()
+	defer stub.Close()
+
+	s := utils.NewSessionWithEnv(t, stub.URL(), []string{enableTasksEnv})
+	defer s.Close()
+
+	s.Send(utils.MustJSON(UserTextMessage{
+		MessageBase: MessageBase{Type: TypeUser},
+		Message:     UserTextBody{Role: RoleUser, Content: "get task 1"},
+	}))
+	utils.AssertOutput(t, s.Read(),
+		utils.MustJSON(SystemInitMessage{
+			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
+			CWD:               utils.AnyString,
+			SessionID:         utils.AnyString,
+			Tools:             utils.AnyStringSlice,
+			MCPServers:        utils.AnyStringSlice,
+			Model:             utils.AnyString,
+			PermissionMode:    PermissionBypassPermissions,
+			SlashCommands:     utils.AnyStringSlice,
+			APIKeySource:      utils.AnyString,
+			ClaudeCodeVersion: utils.AnyString,
+			OutputStyle:       utils.AnyString,
+			Agents:            utils.AnyStringSlice,
+			Skills:            utils.AnyStringSlice,
+			Plugins:           utils.AnyStringSlice,
+			UUID:              utils.AnyString,
+		}),
+		utils.MustJSON(AssistantMessage{
+			MessageBase: MessageBase{Type: TypeAssistant},
+			Message: AssistantBody{
+				Content: []IsContentBlock{
+					ToolUseBlock{
+						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+						ID:               utils.AnyString,
+						Name:             "TaskGet",
+						Input:            utils.AnyMap,
+					},
+				},
+				ID:       utils.AnyString,
+				Model:    utils.AnyString,
+				Role:     RoleAssistant,
+				BodyType: AssistantBodyTypeMessage,
+				Usage:    utils.AnyMap,
+			},
+			SessionID: utils.AnyString,
+			UUID:      utils.AnyString,
+		}),
+		utils.MustJSON(UserToolResultMessage{
+			MessageBase: MessageBase{Type: TypeUser},
+			Message: UserToolResultBody{
+				Role: RoleUser,
+				Content: []ToolResultBlock{{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+					ToolUseID:        utils.AnyString,
+					Content:          utils.AnyString,
+				}},
+			},
+			SessionID:     utils.AnyString,
+			UUID:          utils.AnyString,
+			ToolUseResult: utils.AnyString,
+		}),
+		utils.MustJSON(AssistantMessage{
+			MessageBase: MessageBase{Type: TypeAssistant},
+			Message: AssistantBody{
+				Content: []IsContentBlock{
+					TextBlock{
+						ContentBlockBase: ContentBlockBase{Type: BlockText},
+						Text:             "Task details retrieved.",
+					},
+				},
+				ID:       utils.AnyString,
+				Model:    utils.AnyString,
+				Role:     RoleAssistant,
+				BodyType: AssistantBodyTypeMessage,
+				Usage:    utils.AnyMap,
+			},
+			SessionID: utils.AnyString,
+			UUID:      utils.AnyString,
+		}),
+		utils.MustJSON(ResultSuccessMessage{
+			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
+			IsError:           false,
+			DurationMs:        utils.AnyNumber,
+			DurationApiMs:     utils.AnyNumber,
+			NumTurns:          utils.AnyNumber,
+			Result:            "Task details retrieved.",
+			SessionID:         utils.AnyString,
+			TotalCostUSD:      utils.AnyNumber,
+			Usage:             utils.AnyMap,
+			ModelUsage:        utils.AnyMap,
+			PermissionDenials: []PermissionDenial{},
+			UUID:              utils.AnyString,
+		}),
+	)
+}
+
+// TaskUpdate tool invocation
+func TestToolUseTaskUpdate(t *testing.T) {
+	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+		utils.ToolUseResponse("toolu_tu_001", "TaskUpdate", map[string]any{
+			"taskId": "1",
+			"status": "completed",
+		}),
+		utils.TextResponse("Task updated."),
+	)}
+	stub.Start()
+	defer stub.Close()
+
+	s := utils.NewSessionWithEnv(t, stub.URL(), []string{enableTasksEnv})
+	defer s.Close()
+
+	s.Send(utils.MustJSON(UserTextMessage{
+		MessageBase: MessageBase{Type: TypeUser},
+		Message:     UserTextBody{Role: RoleUser, Content: "mark task 1 as completed"},
+	}))
+	utils.AssertOutput(t, s.Read(),
+		utils.MustJSON(SystemInitMessage{
+			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
+			CWD:               utils.AnyString,
+			SessionID:         utils.AnyString,
+			Tools:             utils.AnyStringSlice,
+			MCPServers:        utils.AnyStringSlice,
+			Model:             utils.AnyString,
+			PermissionMode:    PermissionBypassPermissions,
+			SlashCommands:     utils.AnyStringSlice,
+			APIKeySource:      utils.AnyString,
+			ClaudeCodeVersion: utils.AnyString,
+			OutputStyle:       utils.AnyString,
+			Agents:            utils.AnyStringSlice,
+			Skills:            utils.AnyStringSlice,
+			Plugins:           utils.AnyStringSlice,
+			UUID:              utils.AnyString,
+		}),
+		utils.MustJSON(AssistantMessage{
+			MessageBase: MessageBase{Type: TypeAssistant},
+			Message: AssistantBody{
+				Content: []IsContentBlock{
+					ToolUseBlock{
+						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+						ID:               utils.AnyString,
+						Name:             "TaskUpdate",
+						Input:            utils.AnyMap,
+					},
+				},
+				ID:       utils.AnyString,
+				Model:    utils.AnyString,
+				Role:     RoleAssistant,
+				BodyType: AssistantBodyTypeMessage,
+				Usage:    utils.AnyMap,
+			},
+			SessionID: utils.AnyString,
+			UUID:      utils.AnyString,
+		}),
+		utils.MustJSON(UserToolResultMessage{
+			MessageBase: MessageBase{Type: TypeUser},
+			Message: UserToolResultBody{
+				Role: RoleUser,
+				Content: []ToolResultBlock{{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+					ToolUseID:        utils.AnyString,
+					Content:          utils.AnyString,
+				}},
+			},
+			SessionID:     utils.AnyString,
+			UUID:          utils.AnyString,
+			ToolUseResult: utils.AnyString,
+		}),
+		utils.MustJSON(AssistantMessage{
+			MessageBase: MessageBase{Type: TypeAssistant},
+			Message: AssistantBody{
+				Content: []IsContentBlock{
+					TextBlock{
+						ContentBlockBase: ContentBlockBase{Type: BlockText},
+						Text:             "Task updated.",
+					},
+				},
+				ID:       utils.AnyString,
+				Model:    utils.AnyString,
+				Role:     RoleAssistant,
+				BodyType: AssistantBodyTypeMessage,
+				Usage:    utils.AnyMap,
+			},
+			SessionID: utils.AnyString,
+			UUID:      utils.AnyString,
+		}),
+		utils.MustJSON(ResultSuccessMessage{
+			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
+			IsError:           false,
+			DurationMs:        utils.AnyNumber,
+			DurationApiMs:     utils.AnyNumber,
+			NumTurns:          utils.AnyNumber,
+			Result:            "Task updated.",
 			SessionID:         utils.AnyString,
 			TotalCostUSD:      utils.AnyNumber,
 			Usage:             utils.AnyMap,

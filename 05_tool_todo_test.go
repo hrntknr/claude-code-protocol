@@ -1,3 +1,4 @@
+// > `TodoWrite` is the only task management tool in default mode (without `CLAUDE_CODE_ENABLE_TASKS=1`).
 package ccprotocol_test
 
 import (

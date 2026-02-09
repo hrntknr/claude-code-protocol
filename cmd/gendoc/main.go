@@ -33,6 +33,7 @@ type testFileScenarios struct {
 	filename  string     // e.g. "basic_test.go"
 	category  string     // e.g. "basic" (derived from filename)
 	title     string     // e.g. "Basic" (human-readable heading)
+	notes     string     // blockquote notes extracted from file doc comment
 	scenarios []scenario // test scenarios extracted from the file
 }
 
@@ -53,6 +54,9 @@ func main() {
 	for _, fs := range fileScenarios {
 		var buf strings.Builder
 		buf.WriteString("# " + fs.title + "\n\n")
+		if fs.notes != "" {
+			buf.WriteString(fs.notes + "\n\n")
+		}
 		writeScenarioSection(&buf, fs.scenarios)
 		outPath := filepath.Join(docsDir, fs.category+".md")
 		if err := os.WriteFile(outPath, []byte(buf.String()), 0644); err != nil {
@@ -122,14 +126,36 @@ func parseAllTestFiles(root string) []testFileScenarios {
 			continue
 		}
 		category := strings.TrimSuffix(filename, "_test.go")
+		notes := parseFileNotes(path)
 		result = append(result, testFileScenarios{
 			filename:  filename,
 			category:  category,
 			title:     categoryToTitle(category),
+			notes:     notes,
 			scenarios: scenarios,
 		})
 	}
 	return result
+}
+
+// parseFileNotes extracts blockquote lines ("> ...") from the file-level doc comment.
+func parseFileNotes(path string) string {
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, path, nil, parser.ParseComments)
+	if err != nil {
+		return ""
+	}
+	if f.Doc == nil {
+		return ""
+	}
+	var notes []string
+	for _, line := range strings.Split(f.Doc.Text(), "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "> ") {
+			notes = append(notes, trimmed)
+		}
+	}
+	return strings.Join(notes, "\n")
 }
 
 // categoryToTitle converts a snake_case category name to a title-case heading.

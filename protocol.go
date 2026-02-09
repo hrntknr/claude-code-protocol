@@ -8,11 +8,13 @@ package ccprotocol
 type MessageType string
 
 const (
-	TypeSystem      MessageType = "system"
-	TypeAssistant   MessageType = "assistant"
-	TypeUser        MessageType = "user"
-	TypeResult      MessageType = "result"
-	TypeStreamEvent MessageType = "stream_event"
+	TypeSystem          MessageType = "system"
+	TypeAssistant       MessageType = "assistant"
+	TypeUser            MessageType = "user"
+	TypeResult          MessageType = "result"
+	TypeStreamEvent     MessageType = "stream_event"
+	TypeControlRequest  MessageType = "control_request"
+	TypeControlResponse MessageType = "control_response"
 )
 
 type MessageSubtype string
@@ -49,6 +51,7 @@ const (
 	PermissionDefault           PermissionMode = "default"
 	PermissionAcceptEdits       PermissionMode = "acceptEdits"
 	PermissionDontAsk           PermissionMode = "dontAsk"
+	PermissionDelegate          PermissionMode = "delegate"
 )
 
 type AssistantBodyType string
@@ -351,10 +354,10 @@ type ResultMaxTurnsMessage struct {
 // ```
 type StreamEventMessage struct {
 	MessageBase
-	Event           map[string]any `json:"event"`                          // SSE event data
-	SessionID       string         `json:"session_id"`                     // Session ID
-	ParentToolUseID string         `json:"parent_tool_use_id,omitempty"`   // Parent tool use ID (null or string)
-	UUID            string         `json:"uuid"`                           // Message UUID
+	Event           map[string]any `json:"event"`                        // SSE event data
+	SessionID       string         `json:"session_id"`                   // Session ID
+	ParentToolUseID string         `json:"parent_tool_use_id,omitempty"` // Parent tool use ID (null or string)
+	UUID            string         `json:"uuid"`                         // Message UUID
 }
 
 // # user (replay)
@@ -372,4 +375,33 @@ type UserReplayMessage struct {
 	ParentToolUseID string       `json:"parent_tool_use_id,omitempty"` // Parent tool use ID (null or string)
 	UUID            string       `json:"uuid"`                         // Message UUID
 	IsReplay        bool         `json:"isReplay"`                     // Always true for replayed messages
+}
+
+// # control_request
+// A stdin message for mid-session configuration changes.
+// Contains a request_id for correlation and a request object with a subtype field.
+// Supported subtypes: set_permission_mode, set_model, interrupt, set_max_thinking_tokens, initialize.
+// The CLI processes control_request messages between turns (after a result is emitted).
+//
+// ```json
+// {"type":"control_request","request_id":"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee","request":{"subtype":"set_permission_mode","mode":"plan"}}
+// ```
+type ControlRequestMessage struct {
+	MessageBase
+	RequestID string         `json:"request_id"` // Correlation ID
+	Request   map[string]any `json:"request"`    // Request payload (subtype + params)
+}
+
+// # control_response
+// A response message emitted on stdout after a control_request is processed.
+// The response object contains the subtype (success or error), the correlated request_id,
+// and optionally a response payload or error message.
+// After set_permission_mode or set_model, a new system/init message is also emitted.
+//
+// ```json
+// {"type":"control_response","response":{"subtype":"success","request_id":"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee","response":{"mode":"plan"}}}
+// ```
+type ControlResponseMessage struct {
+	MessageBase
+	Response map[string]any `json:"response"` // Response payload (subtype, request_id, response/error)
 }

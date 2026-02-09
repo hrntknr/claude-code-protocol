@@ -15,6 +15,7 @@
 - [Agent Team](docs/11_agent_team.md)
 - [Cli Flags](docs/12_cli_flags.md)
 - [Error](docs/13_error.md)
+- [Control Request](docs/14_control_request.md)
 
 ## Messages
 
@@ -133,5 +134,27 @@ and isReplay:true.
 
 ```json
 {"type":"user","message":{"role":"user","content":"hello"},"session_id":"abc","parent_tool_use_id":null,"uuid":"xxx","isReplay":true}
+```
+
+### control_request
+
+A stdin message for mid-session configuration changes.
+Contains a request_id for correlation and a request object with a subtype field.
+Supported subtypes: set_permission_mode, set_model, interrupt, set_max_thinking_tokens, initialize.
+The CLI processes control_request messages between turns (after a result is emitted).
+
+```json
+{"type":"control_request","request_id":"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee","request":{"subtype":"set_permission_mode","mode":"plan"}}
+```
+
+### control_response
+
+A response message emitted on stdout after a control_request is processed.
+The response object contains the subtype (success or error), the correlated request_id,
+and optionally a response payload or error message.
+After set_permission_mode or set_model, a new system/init message is also emitted.
+
+```json
+{"type":"control_response","response":{"subtype":"success","request_id":"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee","response":{"mode":"plan"}}}
 ```
 

@@ -1,3 +1,4 @@
+// > Requires: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
 package ccprotocol_test
 
 import (

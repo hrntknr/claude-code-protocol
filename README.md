@@ -1,5 +1,11 @@
 # Claude Code CLI Protocol
 
+[![Regression Test](https://github.com/hrntknr/claude-code-protocol/actions/workflows/test.yml/badge.svg)](https://github.com/hrntknr/claude-code-protocol/actions/workflows/test.yml)
+
+> **Note**
+> - This documentation is auto-generated from test cases.
+> - Automated tests (CI) are run against the latest 3 versions of Claude Code.
+
 ## Scenarios
 
 - [Basic](docs/01_basic.md)

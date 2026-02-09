@@ -9,7 +9,14 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	ccprotocol "github.com/hrntknr/claudecodeprotocol"
 )
+
+// PermissionHandler handles permission prompts from --permission-prompt-tool stdio.
+// Called when the CLI emits a control_request with subtype "can_use_tool".
+// Return non-nil updatedInput to allow the tool, or nil to deny.
+type PermissionHandler func(toolName string, input map[string]any) map[string]any
 
 // Session manages an interactive CLI process for multi-turn testing.
 type Session struct {
@@ -19,8 +26,9 @@ type Session struct {
 		Write([]byte) (int, error)
 		Close() error
 	}
-	scanner *bufio.Scanner
-	stderr  *strings.Builder
+	scanner           *bufio.Scanner
+	stderr            *strings.Builder
+	permissionHandler PermissionHandler
 }
 
 // NewSession starts a Claude Code CLI process connected to the given stub API.
@@ -41,7 +49,6 @@ func NewSessionWithEnv(t *testing.T, baseURL string, extraEnv []string) *Session
 // extraEnv is a list of "KEY=VALUE" strings appended to the process environment.
 func NewSessionWithFlags(t *testing.T, baseURL string, extraFlags []string, extraEnv []string) *Session {
 	t.Helper()
-
 	args := []string{
 		"--input-format", "stream-json",
 		"--output-format", "stream-json",
@@ -50,6 +57,28 @@ func NewSessionWithFlags(t *testing.T, baseURL string, extraFlags []string, extr
 		"--no-session-persistence",
 	}
 	args = append(args, extraFlags...)
+	return startSession(t, baseURL, args, extraEnv)
+}
+
+// NewSessionWithPermissionHandler starts a CLI process with --permission-prompt-tool stdio
+// instead of --dangerously-skip-permissions. During Read(), control_request messages
+// with subtype "can_use_tool" are automatically handled by the given handler.
+func NewSessionWithPermissionHandler(t *testing.T, baseURL string, handler PermissionHandler) *Session {
+	t.Helper()
+	args := []string{
+		"--input-format", "stream-json",
+		"--output-format", "stream-json",
+		"--permission-prompt-tool", "stdio",
+		"--verbose",
+		"--no-session-persistence",
+	}
+	s := startSession(t, baseURL, args, nil)
+	s.permissionHandler = handler
+	return s
+}
+
+func startSession(t *testing.T, baseURL string, args []string, extraEnv []string) *Session {
+	t.Helper()
 
 	cmd := exec.Command("claude", args...)
 	cmd.Env = append(cmd.Environ(),
@@ -92,6 +121,7 @@ func NewSessionWithFlags(t *testing.T, baseURL string, extraFlags []string, extr
 func (s *Session) Send(lines ...string) {
 	s.t.Helper()
 	for _, line := range lines {
+		s.t.Logf("stdin: %s", line)
 		if _, err := s.stdin.Write([]byte(line + "\n")); err != nil {
 			s.t.Fatalf("write stdin: %v", err)
 		}
@@ -99,8 +129,22 @@ func (s *Session) Send(lines ...string) {
 }
 
 // Read reads output lines from stdout until a "result" message is received.
+// If a PermissionHandler is set (via NewSessionWithPermissionHandler), any
+// control_request with subtype "can_use_tool" is automatically responded to.
 func (s *Session) Read() []json.RawMessage {
 	s.t.Helper()
+	return s.ReadUntil("result")
+}
+
+// ReadUntil reads output lines from stdout until a message with one of the
+// specified types is received. Like Read(), if a PermissionHandler is set,
+// control_request messages are automatically responded to.
+func (s *Session) ReadUntil(stopTypes ...string) []json.RawMessage {
+	s.t.Helper()
+	stopSet := make(map[string]bool, len(stopTypes))
+	for _, st := range stopTypes {
+		stopSet[st] = true
+	}
 	var output []json.RawMessage
 	for s.scanner.Scan() {
 		line := s.scanner.Bytes()
@@ -113,7 +157,12 @@ func (s *Session) Read() []json.RawMessage {
 		output = append(output, msg)
 		s.t.Logf("output[%d]: %s", len(output)-1, string(msg))
 
-		if extractType(msg) == "result" {
+		// Handle permission prompts from --permission-prompt-tool stdio.
+		if s.permissionHandler != nil {
+			s.tryRespondPermission(msg)
+		}
+
+		if stopSet[extractType(msg)] {
 			break
 		}
 	}
@@ -124,6 +173,45 @@ func (s *Session) Read() []json.RawMessage {
 		s.t.Fatal("no output received from CLI")
 	}
 	return output
+}
+
+// tryRespondPermission checks if msg is a can_use_tool control_request and,
+// if so, calls the permission handler and writes the response to stdin.
+func (s *Session) tryRespondPermission(msg json.RawMessage) {
+	var m ccprotocol.ControlRequestMessage
+	if err := json.Unmarshal(msg, &m); err != nil {
+		return
+	}
+	if m.Type != ccprotocol.TypeControlRequest || m.Request.Subtype != ccprotocol.ControlCanUseTool {
+		return
+	}
+
+	updatedInput := s.permissionHandler(m.Request.ToolName, m.Request.Input)
+
+	var payload ccprotocol.PermissionPayload
+	if updatedInput != nil {
+		payload = ccprotocol.PermissionPayload{
+			Behavior:     "allow",
+			UpdatedInput: updatedInput,
+		}
+	} else {
+		payload = ccprotocol.PermissionPayload{
+			Behavior: "deny",
+			Message:  "Denied by test",
+		}
+	}
+
+	resp, _ := json.Marshal(ccprotocol.ControlResponseMessage{
+		MessageBase: ccprotocol.MessageBase{Type: ccprotocol.TypeControlResponse},
+		Response: ccprotocol.ControlResponseBody{
+			Subtype:   "success",
+			RequestID: m.RequestID,
+			Response:  payload,
+		},
+	})
+	if _, err := s.stdin.Write(append(resp, '\n')); err != nil {
+		s.t.Fatalf("write permission response: %v", err)
+	}
 }
 
 // Close closes stdin and waits for the CLI process to exit.
@@ -162,6 +250,15 @@ func extractType(msg json.RawMessage) string {
 		return ""
 	}
 	return s
+}
+
+// ExtractRequestID extracts the request_id from a control_request message.
+func ExtractRequestID(msg json.RawMessage) string {
+	var m struct {
+		RequestID string `json:"request_id"`
+	}
+	json.Unmarshal(msg, &m)
+	return m.RequestID
 }
 
 // MustJSON converts v to a JSON string.

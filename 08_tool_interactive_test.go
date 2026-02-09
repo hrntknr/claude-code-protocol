@@ -134,6 +134,176 @@ func TestToolUseAskUserQuestion(t *testing.T) {
 	)
 }
 
+// AskUserQuestion success via --permission-prompt-tool stdio.
+// The test explicitly sends a control_response on stdin to document
+// the bidirectional protocol: control_request (stdout) → control_response (stdin).
+func TestAskUserQuestionSuccess(t *testing.T) {
+	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+		// Request 1: AskUserQuestion tool_use
+		utils.ToolUseResponse("toolu_ask_ok_001", "AskUserQuestion", map[string]any{
+			"questions": []any{
+				map[string]any{
+					"question":    "Which color?",
+					"header":      "Color",
+					"multiSelect": false,
+					"options": []any{
+						map[string]any{"label": "Red", "description": "Red color"},
+						map[string]any{"label": "Blue", "description": "Blue color"},
+					},
+				},
+			},
+		}),
+		// Request 2: Final text after user answers
+		utils.TextResponse("You chose Red."),
+	)}
+	stub.Start()
+	defer stub.Close()
+
+	// Use --permission-prompt-tool stdio without auto-handler (nil).
+	// Permission responses are sent explicitly via s.Send().
+	s := utils.NewSessionWithPermissionHandler(t, stub.URL(), nil)
+	defer s.Close()
+
+	s.Send(utils.MustJSON(UserTextMessage{
+		MessageBase: MessageBase{Type: TypeUser},
+		Message:     UserTextBody{Role: RoleUser, Content: "ask me a question"},
+	}))
+
+	// Phase 1: Read until the CLI asks for permission via control_request.
+	output1 := s.ReadUntil("control_request")
+	utils.AssertOutput(t, output1,
+		utils.MustJSON(SystemInitMessage{
+			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
+			CWD:               utils.AnyString,
+			SessionID:         utils.AnyString,
+			Tools:             utils.AnyStringSlice,
+			MCPServers:        utils.AnyStringSlice,
+			Model:             utils.AnyString,
+			PermissionMode:    PermissionDefault,
+			SlashCommands:     utils.AnyStringSlice,
+			APIKeySource:      utils.AnyString,
+			ClaudeCodeVersion: utils.AnyString,
+			OutputStyle:       utils.AnyString,
+			Agents:            utils.AnyStringSlice,
+			Skills:            utils.AnyStringSlice,
+			Plugins:           utils.AnyStringSlice,
+			UUID:              utils.AnyString,
+		}),
+		utils.MustJSON(AssistantMessage{
+			MessageBase: MessageBase{Type: TypeAssistant},
+			Message: AssistantBody{
+				Content: []IsContentBlock{
+					ToolUseBlock{
+						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+						ID:               utils.AnyString,
+						Name:             "AskUserQuestion",
+						Input:            utils.AnyMap,
+					},
+				},
+				ID:       utils.AnyString,
+				Model:    utils.AnyString,
+				Role:     RoleAssistant,
+				BodyType: AssistantBodyTypeMessage,
+				Usage:    utils.AnyMap,
+			},
+			SessionID: utils.AnyString,
+			UUID:      utils.AnyString,
+		}),
+		// stdout: CLI asks for permission
+		utils.MustJSON(ControlRequestMessage{
+			MessageBase: MessageBase{Type: TypeControlRequest},
+			RequestID:   utils.AnyString,
+			Request: ControlRequest{
+				Subtype:   ControlCanUseTool,
+				ToolName:  "AskUserQuestion",
+				Input:     utils.AnyMap,
+				ToolUseID: utils.AnyString,
+			},
+		}),
+	)
+
+	// Phase 2: Send control_response on stdin with user's answers.
+	reqID := utils.ExtractRequestID(output1[len(output1)-1])
+	s.Send(utils.MustJSON(ControlResponseMessage{
+		MessageBase: MessageBase{Type: TypeControlResponse},
+		Response: ControlResponseBody{
+			Subtype:   "success",
+			RequestID: reqID,
+			Response: PermissionPayload{
+				Behavior: "allow",
+				UpdatedInput: map[string]any{
+					"questions": []any{
+						map[string]any{
+							"question":    "Which color?",
+							"header":      "Color",
+							"multiSelect": false,
+							"options": []any{
+								map[string]any{"label": "Red", "description": "Red color"},
+								map[string]any{"label": "Blue", "description": "Blue color"},
+							},
+						},
+					},
+					"answers": map[string]any{
+						"Which color?": "Red",
+					},
+				},
+			},
+		},
+	}))
+
+	// Phase 3: Read the remaining output until result.
+	output2 := s.Read()
+	utils.AssertOutput(t, output2,
+		// tool_result with is_error absent (success)
+		utils.MustJSON(UserToolResultMessage{
+			MessageBase: MessageBase{Type: TypeUser},
+			Message: UserToolResultBody{
+				Role: RoleUser,
+				Content: []ToolResultBlock{{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+					ToolUseID:        utils.AnyString,
+					Content:          utils.AnyString,
+				}},
+			},
+			SessionID:     utils.AnyString,
+			UUID:          utils.AnyString,
+			ToolUseResult: utils.AnyString,
+		}),
+		utils.MustJSON(AssistantMessage{
+			MessageBase: MessageBase{Type: TypeAssistant},
+			Message: AssistantBody{
+				Content: []IsContentBlock{
+					TextBlock{
+						ContentBlockBase: ContentBlockBase{Type: BlockText},
+						Text:             "You chose Red.",
+					},
+				},
+				ID:       utils.AnyString,
+				Model:    utils.AnyString,
+				Role:     RoleAssistant,
+				BodyType: AssistantBodyTypeMessage,
+				Usage:    utils.AnyMap,
+			},
+			SessionID: utils.AnyString,
+			UUID:      utils.AnyString,
+		}),
+		utils.MustJSON(ResultSuccessMessage{
+			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
+			IsError:           false,
+			DurationMs:        utils.AnyNumber,
+			DurationApiMs:     utils.AnyNumber,
+			NumTurns:          utils.AnyNumber,
+			Result:            "You chose Red.",
+			SessionID:         utils.AnyString,
+			TotalCostUSD:      utils.AnyNumber,
+			Usage:             utils.AnyMap,
+			ModelUsage:        utils.AnyMap,
+			PermissionDenials: []PermissionDenial{},
+			UUID:              utils.AnyString,
+		}),
+	)
+}
+
 // AskUserQuestion with --disallowedTools: treated as "no such tool" error, not permission denial
 func TestAskUserQuestionDisallowed(t *testing.T) {
 	stub := &utils.StubAPIServer{Responses: utils.WithInit(

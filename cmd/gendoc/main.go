@@ -264,9 +264,11 @@ type scenario struct {
 	turns    []scenarioTurn
 }
 
-// scenarioTurn represents a single user input and the corresponding output patterns.
+// scenarioTurn represents one or more stdin inputs and the corresponding output patterns.
+// inputs may be empty for continuation turns (e.g. Phase 3 after a control_response
+// that uses a runtime variable and is therefore invisible to gendoc's AST scanner).
 type scenarioTurn struct {
-	input   assertPattern
+	inputs  []assertPattern
 	outputs []assertPattern
 }
 
@@ -312,7 +314,7 @@ func parseScenarios(root, filename string) []scenario {
 	var allSources []string
 	for _, r := range raws {
 		for _, turn := range r.turns {
-			allSources = append(allSources, turn.input)
+			allSources = append(allSources, turn.inputs...)
 			allSources = append(allSources, turn.outputs...)
 		}
 	}
@@ -324,9 +326,17 @@ func parseScenarios(root, filename string) []scenario {
 	for _, r := range raws {
 		var turns []scenarioTurn
 		for _, turn := range r.turns {
-			inputJSON := jsons[idx]
-			idx++
-			inputLabel, inputHeading := labelFromJSON(inputJSON)
+			var inputs []assertPattern
+			for range turn.inputs {
+				rawJSON := jsons[idx]
+				label, heading := labelFromJSON(rawJSON)
+				inputs = append(inputs, assertPattern{
+					label:   label,
+					heading: heading,
+					json:    simplifyJSON(rawJSON),
+				})
+				idx++
+			}
 
 			var outputs []assertPattern
 			for range turn.outputs {
@@ -340,11 +350,7 @@ func parseScenarios(root, filename string) []scenario {
 				idx++
 			}
 			turns = append(turns, scenarioTurn{
-				input: assertPattern{
-					label:   inputLabel,
-					heading: inputHeading,
-					json:    simplifyJSON(inputJSON),
-				},
+				inputs:  inputs,
 				outputs: outputs,
 			})
 		}
@@ -369,16 +375,22 @@ func titleFromFunc(fn *ast.FuncDecl) string {
 	return fn.Name.Name[len("Test"):]
 }
 
-// sourceTurn pairs the input (s.Send) with output patterns (utils.AssertOutput).
+// sourceTurn pairs stdin inputs (s.Send) with output patterns (utils.AssertOutput).
+// inputs may contain zero or more entries: zero for continuation turns (when
+// a preceding Send uses a runtime variable), or multiple when several Sends
+// appear before a single AssertOutput (e.g. control_request + user message).
 type sourceTurn struct {
-	input   string
+	inputs  []string
 	outputs []string
 }
 
 // extractSourceTurns walks a test function body to find s.Send and utils.AssertOutput
-// calls, pairing each Send's MustJSON argument with the following AssertOutput's patterns.
+// calls. MustJSON arguments from Send calls are accumulated until an AssertOutput is
+// found, at which point a turn is created with all accumulated inputs. If an
+// AssertOutput has no preceding Send (e.g. Phase 3 of a permission prompt test),
+// a turn with empty inputs is created to preserve the output patterns.
 func extractSourceTurns(fset *token.FileSet, fn *ast.FuncDecl) []sourceTurn {
-	var pendingInput string
+	var pendingInputs []string
 	var turns []sourceTurn
 	ast.Inspect(fn.Body, func(n ast.Node) bool {
 		call, ok := n.(*ast.CallExpr)
@@ -387,7 +399,7 @@ func extractSourceTurns(fset *token.FileSet, fn *ast.FuncDecl) []sourceTurn {
 		}
 		if isSendCall(call) && len(call.Args) == 1 {
 			if src, ok := extractMustJSONSource(fset, call.Args[0]); ok {
-				pendingInput = src
+				pendingInputs = append(pendingInputs, src)
 			}
 			return true
 		}
@@ -398,12 +410,12 @@ func extractSourceTurns(fset *token.FileSet, fn *ast.FuncDecl) []sourceTurn {
 					sources = append(sources, src)
 				}
 			}
-			if len(sources) > 0 && pendingInput != "" {
+			if len(sources) > 0 {
 				turns = append(turns, sourceTurn{
-					input:   pendingInput,
+					inputs:  pendingInputs,
 					outputs: sources,
 				})
-				pendingInput = ""
+				pendingInputs = nil
 			}
 			return true
 		}
@@ -501,13 +513,10 @@ func exprSource(fset *token.FileSet, expr ast.Expr) string {
 	return buf.String()
 }
 
-// evalExpressions builds a temporary Go file that evaluates all source expressions
-// via utils.MustJSON and returns the JSON strings.
-func evalExpressions(root string, sources []string) []string {
-	if len(sources) == 0 {
-		return nil
-	}
-
+// buildEvalSource builds the Go source for evaluating MustJSON expressions.
+// extraDecls is inserted before main() to declare stub variables for identifiers
+// that are undefined in the temporary evaluation context (e.g. test-local variables).
+func buildEvalSource(sources []string, extraDecls string) string {
 	var src strings.Builder
 	src.WriteString("package main\n\nimport (\n\t\"fmt\"\n")
 	src.WriteString("\t. \"github.com/hrntknr/claudecodeprotocol\"\n")
@@ -516,11 +525,41 @@ func evalExpressions(root string, sources []string) []string {
 	// Suppress unused import errors.
 	src.WriteString("var _ = utils.MustJSON\n")
 	src.WriteString("var _ MessageBase\n\n")
+	if extraDecls != "" {
+		src.WriteString(extraDecls + "\n")
+	}
 	src.WriteString("func main() {\n")
 	for _, s := range sources {
 		src.WriteString("\tfmt.Println(utils.MustJSON(" + s + "))\n")
 	}
 	src.WriteString("}\n")
+	return src.String()
+}
+
+// parseUndefinedIdents extracts identifier names from "undefined: X" compile errors.
+func parseUndefinedIdents(stderr string) []string {
+	var names []string
+	seen := map[string]bool{}
+	for _, line := range strings.Split(stderr, "\n") {
+		if idx := strings.Index(line, "undefined: "); idx >= 0 {
+			name := strings.TrimSpace(line[idx+len("undefined: "):])
+			if name != "" && !seen[name] {
+				seen[name] = true
+				names = append(names, name)
+			}
+		}
+	}
+	return names
+}
+
+// evalExpressions builds a temporary Go file that evaluates all source expressions
+// via utils.MustJSON and returns the JSON strings.
+// If compilation fails due to undefined identifiers (e.g. test-local variables like
+// reqID), it automatically adds zero-value string declarations and retries.
+func evalExpressions(root string, sources []string) []string {
+	if len(sources) == 0 {
+		return nil
+	}
 
 	tmpDir, err := os.MkdirTemp(root, ".gendoc-")
 	if err != nil {
@@ -528,9 +567,11 @@ func evalExpressions(root string, sources []string) []string {
 		os.Exit(1)
 	}
 	defer os.RemoveAll(tmpDir)
-
 	tmpFile := filepath.Join(tmpDir, "main.go")
-	if err := os.WriteFile(tmpFile, []byte(src.String()), 0644); err != nil {
+
+	// First attempt: no extra declarations.
+	src := buildEvalSource(sources, "")
+	if err := os.WriteFile(tmpFile, []byte(src), 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "write temp file: %v\n", err)
 		os.Exit(1)
 	}
@@ -541,8 +582,33 @@ func evalExpressions(root string, sources []string) []string {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "eval expressions: %v\n%s\n", err, stderr.String())
-		os.Exit(1)
+		// Check for undefined identifier errors and retry with stub declarations.
+		undefs := parseUndefinedIdents(stderr.String())
+		if len(undefs) > 0 {
+			var decls strings.Builder
+			for _, name := range undefs {
+				decls.WriteString("var " + name + " string\n")
+			}
+			src = buildEvalSource(sources, decls.String())
+			if err := os.WriteFile(tmpFile, []byte(src), 0644); err != nil {
+				fmt.Fprintf(os.Stderr, "write temp file: %v\n", err)
+				os.Exit(1)
+			}
+
+			stdout.Reset()
+			stderr.Reset()
+			cmd = exec.Command("go", "run", tmpFile)
+			cmd.Dir = root
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+			if err := cmd.Run(); err != nil {
+				fmt.Fprintf(os.Stderr, "eval expressions (retry): %v\n%s\n", err, stderr.String())
+				os.Exit(1)
+			}
+		} else {
+			fmt.Fprintf(os.Stderr, "eval expressions: %v\n%s\n", err, stderr.String())
+			os.Exit(1)
+		}
 	}
 
 	lines := strings.Split(strings.TrimRight(stdout.String(), "\n"), "\n")
@@ -668,7 +734,9 @@ func writeScenarioSection(buf *strings.Builder, scenarios []scenario) {
 		buf.WriteString("<tr><th>direction</th><th>message</th><th>json</th></tr>\n")
 
 		for _, turn := range sc.turns {
-			writeScenarioRow(buf, "&lt;-", turn.input)
+			for _, p := range turn.inputs {
+				writeScenarioRow(buf, "&lt;-", p)
+			}
 			for _, p := range turn.outputs {
 				writeScenarioRow(buf, "-&gt;", p)
 			}

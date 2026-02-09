@@ -63,7 +63,14 @@ func TestControlSetPermissionMode(t *testing.T) {
 	)
 
 	// Send control_request to change permission mode
-	s.Send(`{"type":"control_request","request_id":"test-perm-001","request":{"subtype":"set_permission_mode","mode":"plan"}}`)
+	s.Send(utils.MustJSON(ControlRequestMessage{
+		MessageBase: MessageBase{Type: TypeControlRequest},
+		RequestID:   "test-perm-001",
+		Request: ControlRequest{
+			Subtype: ControlSetPermissionMode,
+			Mode:    "plan",
+		},
+	}))
 
 	// Turn 2: control_response + new system/init + normal flow
 	s.Send(utils.MustJSON(UserTextMessage{
@@ -77,7 +84,10 @@ func TestControlSetPermissionMode(t *testing.T) {
 		// control_response with success
 		utils.MustJSON(ControlResponseMessage{
 			MessageBase: MessageBase{Type: TypeControlResponse},
-			Response:    utils.AnyMap,
+			Response: ControlResponseBody{
+				Subtype:   utils.AnyString,
+				RequestID: utils.AnyString,
+			},
 		}),
 		// New system/init with updated permission mode
 		utils.MustJSON(SystemInitMessage{
@@ -168,7 +178,14 @@ func TestControlSetModel(t *testing.T) {
 	)
 
 	// Send control_request to change model
-	s.Send(`{"type":"control_request","request_id":"test-model-001","request":{"subtype":"set_model","model":"sonnet"}}`)
+	s.Send(utils.MustJSON(ControlRequestMessage{
+		MessageBase: MessageBase{Type: TypeControlRequest},
+		RequestID:   "test-model-001",
+		Request: ControlRequest{
+			Subtype: ControlSetModel,
+			Model:   "sonnet",
+		},
+	}))
 
 	// Turn 2: control_response + new system/init + normal flow
 	s.Send(utils.MustJSON(UserTextMessage{
@@ -181,7 +198,10 @@ func TestControlSetModel(t *testing.T) {
 		// control_response with success
 		utils.MustJSON(ControlResponseMessage{
 			MessageBase: MessageBase{Type: TypeControlResponse},
-			Response:    utils.AnyMap,
+			Response: ControlResponseBody{
+				Subtype:   utils.AnyString,
+				RequestID: utils.AnyString,
+			},
 		}),
 		// New system/init (model field is the resolved full name)
 		utils.MustJSON(SystemInitMessage{

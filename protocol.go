@@ -43,6 +43,14 @@ const (
 	BlockToolResult ContentBlockType = "tool_result"
 )
 
+type ControlSubtype string
+
+const (
+	ControlCanUseTool        ControlSubtype = "can_use_tool"
+	ControlSetPermissionMode ControlSubtype = "set_permission_mode"
+	ControlSetModel          ControlSubtype = "set_model"
+)
+
 type PermissionMode string
 
 const (
@@ -377,6 +385,32 @@ type UserReplayMessage struct {
 	IsReplay        bool         `json:"isReplay"`                     // Always true for replayed messages
 }
 
+// ControlRequest is the request payload inside a ControlRequestMessage.
+// The Subtype field determines which optional fields are populated.
+type ControlRequest struct {
+	Subtype   ControlSubtype `json:"subtype"`
+	ToolName  string         `json:"tool_name,omitempty"`   // can_use_tool
+	Input     map[string]any `json:"input,omitempty"`       // can_use_tool
+	ToolUseID string         `json:"tool_use_id,omitempty"` // can_use_tool
+	Mode      string         `json:"mode,omitempty"`        // set_permission_mode
+	Model     string         `json:"model,omitempty"`       // set_model
+}
+
+// ControlResponseBody is the response payload inside a ControlResponseMessage.
+type ControlResponseBody struct {
+	Subtype   string `json:"subtype"`            // "success" or "error"
+	RequestID string `json:"request_id"`         // Correlation ID
+	Response  any    `json:"response,omitempty"` // PermissionPayload or map
+	Error     string `json:"error,omitempty"`    // Error message (when subtype is "error")
+}
+
+// PermissionPayload is the inner response for permission prompt control_responses.
+type PermissionPayload struct {
+	Behavior     string `json:"behavior"`               // "allow" or "deny"
+	UpdatedInput any    `json:"updatedInput,omitempty"` // Updated tool input (allow)
+	Message      string `json:"message,omitempty"`      // Denial reason (deny)
+}
+
 // # control_request
 // A stdin message for mid-session configuration changes.
 // Contains a request_id for correlation and a request object with a subtype field.
@@ -389,7 +423,7 @@ type UserReplayMessage struct {
 type ControlRequestMessage struct {
 	MessageBase
 	RequestID string         `json:"request_id"` // Correlation ID
-	Request   map[string]any `json:"request"`    // Request payload (subtype + params)
+	Request   ControlRequest `json:"request"`    // Request payload (subtype + params)
 }
 
 // # control_response
@@ -403,5 +437,5 @@ type ControlRequestMessage struct {
 // ```
 type ControlResponseMessage struct {
 	MessageBase
-	Response map[string]any `json:"response"` // Response payload (subtype, request_id, response/error)
+	Response ControlResponseBody `json:"response"` // Response payload (subtype, request_id, response/error)
 }

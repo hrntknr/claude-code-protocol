@@ -56,6 +56,16 @@
   "uuid": ""
 }
 </pre></td></tr>
+<tr><td>&lt;-</td><td><a href="../README.md#control_request">control_request</a></td><td><pre lang="json">
+{
+  "type": "control_request",
+  "request_id": "test-perm-001",
+  "request": {
+    "subtype": "set_permission_mode",
+    "mode": "plan"
+  }
+}
+</pre></td></tr>
 <tr><td>&lt;-</td><td><a href="../README.md#user">user</a></td><td><pre lang="json">
 {
   "type": "user",
@@ -68,7 +78,10 @@
 <tr><td>-&gt;</td><td><a href="../README.md#control_response">control_response</a></td><td><pre lang="json">
 {
   "type": "control_response",
-  "response": {}
+  "response": {
+    "subtype": "",
+    "request_id": ""
+  }
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
@@ -160,6 +173,16 @@
   "uuid": ""
 }
 </pre></td></tr>
+<tr><td>&lt;-</td><td><a href="../README.md#control_request">control_request</a></td><td><pre lang="json">
+{
+  "type": "control_request",
+  "request_id": "test-model-001",
+  "request": {
+    "subtype": "set_model",
+    "model": "sonnet"
+  }
+}
+</pre></td></tr>
 <tr><td>&lt;-</td><td><a href="../README.md#user">user</a></td><td><pre lang="json">
 {
   "type": "user",
@@ -172,7 +195,10 @@
 <tr><td>-&gt;</td><td><a href="../README.md#control_response">control_response</a></td><td><pre lang="json">
 {
   "type": "control_response",
-  "response": {}
+  "response": {
+    "subtype": "",
+    "request_id": ""
+  }
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">

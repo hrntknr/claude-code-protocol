@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | xargs -I{} bash -c 'case \"$1\" in *.go) gofmt -w \"$1\" ;; esac' _ {}"
+          }
+        ]
+      }
+    ]
+  }
+}

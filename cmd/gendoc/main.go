@@ -1,11 +1,11 @@
-// cmd/gendoc generates README.md from Go doc comments.
+// cmd/gendoc generates README.md and per-category docs from Go doc comments.
 //
 // It parses protocol.go for schema type definitions (enum constants and unified
-// struct types) and protocol_test.go for scenario descriptions, then produces
-// a two-section markdown document:
+// struct types) and all *_test.go files in the project root for scenario
+// descriptions, then produces:
 //
-//  1. Scenarios — end-to-end usage examples extracted from test functions
-//  2. Messages — enum constants and struct type definitions
+//  1. docs/<category>.md — per-category scenario docs (one per test file)
+//  2. README.md — index table linking to category docs + Messages section
 //
 // Usage:
 //
@@ -23,18 +23,49 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
+	"unicode"
 )
+
+// testFileScenarios groups scenarios parsed from a single test file.
+type testFileScenarios struct {
+	filename  string     // e.g. "basic_test.go"
+	category  string     // e.g. "basic" (derived from filename)
+	title     string     // e.g. "Basic" (human-readable heading)
+	scenarios []scenario // test scenarios extracted from the file
+}
 
 func main() {
 	root := findProjectRoot()
 
 	msgTypes := parseMessageTypes(filepath.Join(root, "protocol.go"))
-	scenarios := parseScenarios(root, filepath.Join(root, "protocol_test.go"))
+	fileScenarios := parseAllTestFiles(root)
 
+	// Create docs/ directory.
+	docsDir := filepath.Join(root, "docs")
+	if err := os.MkdirAll(docsDir, 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "error creating docs dir: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Generate per-category docs.
+	for _, fs := range fileScenarios {
+		var buf strings.Builder
+		buf.WriteString("# " + fs.title + "\n\n")
+		writeScenarioSection(&buf, fs.scenarios)
+		outPath := filepath.Join(docsDir, fs.category+".md")
+		if err := os.WriteFile(outPath, []byte(buf.String()), 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "error writing %s: %v\n", outPath, err)
+			os.Exit(1)
+		}
+		fmt.Printf("Generated %s\n", outPath)
+	}
+
+	// Generate README.md with index table + Messages section.
 	var buf strings.Builder
 	writeHeader(&buf)
-	writeScenarioSection(&buf, scenarios)
+	writeIndexTable(&buf, fileScenarios)
 	writeMessageSection(&buf, msgTypes)
 
 	outPath := filepath.Join(root, "README.md")
@@ -66,6 +97,68 @@ func findProjectRoot() string {
 		}
 		dir = parent
 	}
+}
+
+// ---------------------------------------------------------------------------
+// Multi-file test scanning
+// ---------------------------------------------------------------------------
+
+// parseAllTestFiles globs all *_test.go files in the project root, parses
+// scenarios from each, and returns sorted results. Files with no test
+// functions (e.g. helpers_test.go) are skipped.
+func parseAllTestFiles(root string) []testFileScenarios {
+	matches, err := filepath.Glob(filepath.Join(root, "*_test.go"))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "glob test files: %v\n", err)
+		os.Exit(1)
+	}
+	sort.Strings(matches)
+
+	var result []testFileScenarios
+	for _, path := range matches {
+		filename := filepath.Base(path)
+		scenarios := parseScenarios(root, path)
+		if len(scenarios) == 0 {
+			continue
+		}
+		category := strings.TrimSuffix(filename, "_test.go")
+		result = append(result, testFileScenarios{
+			filename:  filename,
+			category:  category,
+			title:     categoryToTitle(category),
+			scenarios: scenarios,
+		})
+	}
+	return result
+}
+
+// categoryToTitle converts a snake_case category name to a title-case heading.
+// A leading numeric prefix (e.g. "01_") is stripped before conversion.
+// e.g. "01_basic" -> "Basic", "11_agent_team" -> "Agent Team"
+func categoryToTitle(category string) string {
+	// Strip leading numeric prefix like "01_", "13_".
+	s := category
+	if i := strings.IndexByte(s, '_'); i > 0 {
+		allDigits := true
+		for _, r := range s[:i] {
+			if r < '0' || r > '9' {
+				allDigits = false
+				break
+			}
+		}
+		if allDigits {
+			s = s[i+1:]
+		}
+	}
+	words := strings.Split(s, "_")
+	for i, w := range words {
+		if len(w) > 0 {
+			runes := []rune(w)
+			runes[0] = unicode.ToUpper(runes[0])
+			words[i] = string(runes)
+		}
+	}
+	return strings.Join(words, " ")
 }
 
 // ---------------------------------------------------------------------------
@@ -134,7 +227,7 @@ func extractDocSection(doc string) (heading, body string) {
 }
 
 // ---------------------------------------------------------------------------
-// Scenario parsing (protocol_test.go)
+// Scenario parsing (*_test.go)
 // ---------------------------------------------------------------------------
 
 // scenario represents a test function with its assert patterns extracted from code.
@@ -434,7 +527,7 @@ func evalExpressions(root string, sources []string) []string {
 }
 
 // ---------------------------------------------------------------------------
-// JSON simplification (sentinel → empty value)
+// JSON simplification (sentinel -> empty value)
 // ---------------------------------------------------------------------------
 
 // simplifyJSON replaces sentinel values in a compact JSON string with empty values.
@@ -459,19 +552,26 @@ func writeHeader(buf *strings.Builder) {
 	buf.WriteString("# Claude Code CLI Protocol\n\n")
 }
 
-func writeScenarioSection(buf *strings.Builder, scenarios []scenario) {
+// writeIndexTable writes a Scenarios section with links to per-category docs.
+func writeIndexTable(buf *strings.Builder, files []testFileScenarios) {
 	buf.WriteString("## Scenarios\n\n")
+	for _, fs := range files {
+		buf.WriteString("- [" + fs.title + "](docs/" + fs.category + ".md)\n")
+	}
+	buf.WriteString("\n")
+}
 
+func writeScenarioSection(buf *strings.Builder, scenarios []scenario) {
 	for _, sc := range scenarios {
-		buf.WriteString("### " + sc.title + "\n\n")
+		buf.WriteString("## " + sc.title + "\n\n")
 		buf.WriteString("| direction | message | json |\n")
 		buf.WriteString("|-----------|---------|------|\n")
 
 		for _, turn := range sc.turns {
-			buf.WriteString("| ← | [" + turn.input.label + "](#" + headingToAnchor(turn.input.heading) + ") | `" + turn.input.json + "` |\n")
+			buf.WriteString("| <- | [" + turn.input.label + "](#" + headingToAnchor(turn.input.heading) + ") | `" + turn.input.json + "` |\n")
 
 			for _, p := range turn.outputs {
-				buf.WriteString("| → | [" + p.label + "](#" + headingToAnchor(p.heading) + ") | `" + p.json + "` |\n")
+				buf.WriteString("| -> | [" + p.label + "](#" + headingToAnchor(p.heading) + ") | `" + p.json + "` |\n")
 			}
 		}
 

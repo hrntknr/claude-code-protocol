@@ -372,3 +372,17 @@ func ErrorSSEResponse(errorType, message string) []SSEEvent {
 		},
 	}
 }
+
+// InitResponses returns 2 dummy TextResponse entries to absorb the CLI's
+// internal haiku init requests (quota check + file-change detection).
+func InitResponses() [][]SSEEvent {
+	return [][]SSEEvent{
+		TextResponse("ok"),
+		TextResponse("ok"),
+	}
+}
+
+// WithInit prepends 2 init-absorbing dummy responses to the given responses.
+func WithInit(responses ...[]SSEEvent) [][]SSEEvent {
+	return append(InitResponses(), responses...)
+}

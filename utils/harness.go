@@ -26,21 +26,32 @@ type Session struct {
 // NewSession starts a Claude Code CLI process connected to the given stub API.
 func NewSession(t *testing.T, baseURL string) *Session {
 	t.Helper()
-	return NewSessionWithEnv(t, baseURL, nil)
+	return NewSessionWithFlags(t, baseURL, nil, nil)
 }
 
 // NewSessionWithEnv starts a Claude Code CLI process with additional environment variables.
 // extraEnv is a list of "KEY=VALUE" strings appended to the process environment.
 func NewSessionWithEnv(t *testing.T, baseURL string, extraEnv []string) *Session {
 	t.Helper()
+	return NewSessionWithFlags(t, baseURL, nil, extraEnv)
+}
 
-	cmd := exec.Command("claude",
+// NewSessionWithFlags starts a Claude Code CLI process with additional CLI flags
+// and environment variables. extraFlags are appended to the base flags.
+// extraEnv is a list of "KEY=VALUE" strings appended to the process environment.
+func NewSessionWithFlags(t *testing.T, baseURL string, extraFlags []string, extraEnv []string) *Session {
+	t.Helper()
+
+	args := []string{
 		"--input-format", "stream-json",
 		"--output-format", "stream-json",
 		"--dangerously-skip-permissions",
 		"--verbose",
 		"--no-session-persistence",
-	)
+	}
+	args = append(args, extraFlags...)
+
+	cmd := exec.Command("claude", args...)
 	cmd.Env = append(cmd.Environ(),
 		"ANTHROPIC_BASE_URL="+baseURL,
 	)

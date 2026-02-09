@@ -8,10 +8,11 @@ package ccprotocol
 type MessageType string
 
 const (
-	TypeSystem    MessageType = "system"
-	TypeAssistant MessageType = "assistant"
-	TypeUser      MessageType = "user"
-	TypeResult    MessageType = "result"
+	TypeSystem      MessageType = "system"
+	TypeAssistant   MessageType = "assistant"
+	TypeUser        MessageType = "user"
+	TypeResult      MessageType = "result"
+	TypeStreamEvent MessageType = "stream_event"
 )
 
 type MessageSubtype string
@@ -21,6 +22,7 @@ const (
 	SubtypeStatus               MessageSubtype = "status"
 	SubtypeSuccess              MessageSubtype = "success"
 	SubtypeErrorDuringExecution MessageSubtype = "error_during_execution"
+	SubtypeErrorMaxTurns        MessageSubtype = "error_max_turns"
 )
 
 type MessageRole string
@@ -44,6 +46,9 @@ type PermissionMode string
 const (
 	PermissionBypassPermissions PermissionMode = "bypassPermissions"
 	PermissionPlan              PermissionMode = "plan"
+	PermissionDefault           PermissionMode = "default"
+	PermissionAcceptEdits       PermissionMode = "acceptEdits"
+	PermissionDontAsk           PermissionMode = "dontAsk"
 )
 
 type AssistantBodyType string
@@ -310,4 +315,61 @@ type PermissionDenial struct {
 	ToolName  string         `json:"tool_name"`   // Tool name
 	ToolUseID string         `json:"tool_use_id"` // Tool use ID
 	ToolInput map[string]any `json:"tool_input"`  // Tool input parameters
+}
+
+// # result/error_max_turns
+// A turn-ending message when --max-turns limit is reached.
+// The subtype is "error_max_turns" and errors is an empty array.
+//
+// ```json
+// {"type":"result","subtype":"error_max_turns","is_error":false,"duration_ms":184,"duration_api_ms":30,"num_turns":2,"stop_reason":null,"session_id":"abc","total_cost_usd":0.00055,"usage":{},"modelUsage":{},"permission_denials":[],"uuid":"xxx","errors":[]}
+// ```
+type ResultMaxTurnsMessage struct {
+	MessageBase
+	IsError           bool               `json:"is_error"`           // Error flag
+	DurationMs        float64            `json:"duration_ms"`        // Total duration (ms)
+	DurationApiMs     float64            `json:"duration_api_ms"`    // API duration (ms)
+	NumTurns          float64            `json:"num_turns"`          // Number of turns
+	SessionID         string             `json:"session_id"`         // Session ID
+	TotalCostUSD      float64            `json:"total_cost_usd"`     // Total cost (USD)
+	Usage             map[string]any     `json:"usage"`              // Token usage
+	ModelUsage        map[string]any     `json:"modelUsage"`         // Per-model usage
+	PermissionDenials []PermissionDenial `json:"permission_denials"` // Permission denials (always present)
+	UUID              string             `json:"uuid"`               // Message UUID
+	Errors            []string           `json:"errors"`             // Error array (empty)
+}
+
+// # stream_event
+// A message emitted when --include-partial-messages is enabled.
+// Contains SSE stream events as they arrive from the API.
+// The event field contains the raw SSE event data (message_start,
+// content_block_start, content_block_delta, content_block_stop,
+// message_delta, message_stop).
+//
+// ```json
+// {"type":"stream_event","event":{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hello"}},"session_id":"abc","parent_tool_use_id":null,"uuid":"xxx"}
+// ```
+type StreamEventMessage struct {
+	MessageBase
+	Event           map[string]any `json:"event"`                          // SSE event data
+	SessionID       string         `json:"session_id"`                     // Session ID
+	ParentToolUseID string         `json:"parent_tool_use_id,omitempty"`   // Parent tool use ID (null or string)
+	UUID            string         `json:"uuid"`                           // Message UUID
+}
+
+// # user (replay)
+// A user message echoed back on stdout when --replay-user-messages is enabled.
+// Contains the same content as the input, plus session_id, uuid, parent_tool_use_id,
+// and isReplay:true.
+//
+// ```json
+// {"type":"user","message":{"role":"user","content":"hello"},"session_id":"abc","parent_tool_use_id":null,"uuid":"xxx","isReplay":true}
+// ```
+type UserReplayMessage struct {
+	MessageBase
+	Message         UserTextBody `json:"message"`
+	SessionID       string       `json:"session_id"`                   // Session ID
+	ParentToolUseID string       `json:"parent_tool_use_id,omitempty"` // Parent tool use ID (null or string)
+	UUID            string       `json:"uuid"`                         // Message UUID
+	IsReplay        bool         `json:"isReplay"`                     // Always true for replayed messages
 }

@@ -1,0 +1,139 @@
+package ccprotocol_test
+
+import (
+	"testing"
+
+	. "github.com/hrntknr/claudecodeprotocol"
+	"github.com/hrntknr/claudecodeprotocol/utils"
+)
+
+// Error handling on tool execution failure
+func TestToolError(t *testing.T) {
+	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+		// Request 1: Read a non-existent file
+		utils.ToolUseResponse("toolu_err_001", "Read", map[string]any{
+			"file_path": "/tmp/this-file-does-not-exist-for-test-12345.txt",
+		}),
+		// Request 2: The API acknowledges the error and responds
+		utils.TextResponse("The file does not exist. Let me handle this error."),
+	)}
+	stub.Start()
+	defer stub.Close()
+
+	s := utils.NewSession(t, stub.URL())
+	defer s.Close()
+
+	s.Send(utils.MustJSON(UserTextMessage{
+		MessageBase: MessageBase{Type: TypeUser},
+		Message:     UserTextBody{Role: RoleUser, Content: "read a missing file"},
+	}))
+	// The CLI should handle the tool error gracefully.
+	// The API receives the error as a tool_result with is_error=true,
+	// then returns a normal text response.
+	utils.AssertOutput(t, s.Read(),
+		utils.MustJSON(SystemInitMessage{
+			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
+			CWD:               utils.AnyString,
+			SessionID:         utils.AnyString,
+			Tools:             utils.AnyStringSlice,
+			MCPServers:        utils.AnyStringSlice,
+			Model:             utils.AnyString,
+			PermissionMode:    PermissionBypassPermissions,
+			SlashCommands:     utils.AnyStringSlice,
+			APIKeySource:      utils.AnyString,
+			ClaudeCodeVersion: utils.AnyString,
+			OutputStyle:       utils.AnyString,
+			Agents:            utils.AnyStringSlice,
+			Skills:            utils.AnyStringSlice,
+			Plugins:           utils.AnyStringSlice,
+			UUID:              utils.AnyString,
+		}),
+		utils.MustJSON(AssistantMessage{
+			MessageBase: MessageBase{Type: TypeAssistant},
+			Message: AssistantBody{
+				Content: []IsContentBlock{
+					TextBlock{
+						ContentBlockBase: ContentBlockBase{Type: BlockText},
+						Text:             "The file does not exist. Let me handle this error.",
+					},
+				},
+				ID:       utils.AnyString,
+				Model:    utils.AnyString,
+				Role:     RoleAssistant,
+				BodyType: AssistantBodyTypeMessage,
+				Usage:    utils.AnyMap,
+			},
+			SessionID: utils.AnyString,
+			UUID:      utils.AnyString,
+		}),
+		utils.MustJSON(ResultSuccessMessage{
+			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
+			IsError:           false,
+			DurationMs:        utils.AnyNumber,
+			DurationApiMs:     utils.AnyNumber,
+			NumTurns:          utils.AnyNumber,
+			Result:            "The file does not exist. Let me handle this error.",
+			SessionID:         utils.AnyString,
+			TotalCostUSD:      utils.AnyNumber,
+			Usage:             utils.AnyMap,
+			ModelUsage:        utils.AnyMap,
+			PermissionDenials: []PermissionDenial{},
+			UUID:              utils.AnyString,
+		}),
+	)
+}
+
+// Behavior when receiving API-level SSE error events
+func TestAPIError(t *testing.T) {
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
+		// All requests (including init) get the same error.
+		// The CLI should handle the API error.
+		utils.ErrorSSEResponse("overloaded_error", "Overloaded"),
+	}}
+	stub.Start()
+	defer stub.Close()
+
+	s := utils.NewSession(t, stub.URL())
+	defer s.Close()
+
+	s.Send(utils.MustJSON(UserTextMessage{
+		MessageBase: MessageBase{Type: TypeUser},
+		Message:     UserTextBody{Role: RoleUser, Content: "trigger an error"},
+	}))
+	// Observed: When the API returns an error, the CLI emits a result with
+	// subtype "error_during_execution" and an "errors" array containing error
+	// message strings (full stack traces). No assistant messages are emitted.
+	utils.AssertOutput(t, s.Read(),
+		utils.MustJSON(SystemInitMessage{
+			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
+			CWD:               utils.AnyString,
+			SessionID:         utils.AnyString,
+			Tools:             utils.AnyStringSlice,
+			MCPServers:        utils.AnyStringSlice,
+			Model:             utils.AnyString,
+			PermissionMode:    PermissionBypassPermissions,
+			SlashCommands:     utils.AnyStringSlice,
+			APIKeySource:      utils.AnyString,
+			ClaudeCodeVersion: utils.AnyString,
+			OutputStyle:       utils.AnyString,
+			Agents:            utils.AnyStringSlice,
+			Skills:            utils.AnyStringSlice,
+			Plugins:           utils.AnyStringSlice,
+			UUID:              utils.AnyString,
+		}),
+		utils.MustJSON(ResultErrorMessage{
+			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeErrorDuringExecution},
+			IsError:           false,
+			DurationMs:        utils.AnyNumber,
+			DurationApiMs:     utils.AnyNumber,
+			NumTurns:          utils.AnyNumber,
+			SessionID:         utils.AnyString,
+			TotalCostUSD:      utils.AnyNumber,
+			Usage:             utils.AnyMap,
+			ModelUsage:        utils.AnyMap,
+			PermissionDenials: []PermissionDenial{},
+			UUID:              utils.AnyString,
+			Errors:            utils.AnyStringSlice,
+		}),
+	)
+}

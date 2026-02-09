@@ -594,10 +594,10 @@ func writeScenarioSection(buf *strings.Builder, scenarios []scenario) {
 		buf.WriteString("|-----------|---------|------|\n")
 
 		for _, turn := range sc.turns {
-			buf.WriteString("| <- | [" + turn.input.label + "](#" + headingToAnchor(turn.input.heading) + ") | `" + turn.input.json + "` |\n")
+			buf.WriteString("| <- | [" + turn.input.label + "](../README.md#" + headingToAnchor(turn.input.heading) + ") | `" + turn.input.json + "` |\n")
 
 			for _, p := range turn.outputs {
-				buf.WriteString("| -> | [" + p.label + "](#" + headingToAnchor(p.heading) + ") | `" + p.json + "` |\n")
+				buf.WriteString("| -> | [" + p.label + "](../README.md#" + headingToAnchor(p.heading) + ") | `" + p.json + "` |\n")
 			}
 		}
 

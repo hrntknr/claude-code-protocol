@@ -1,5 +1,11 @@
 # Complex Flows
 
+- [Text and tool use in the same response](#text-and-tool-use-in-the-same-response)
+- [Parallel invocation of multiple tools](#parallel-invocation-of-multiple-tools)
+- [Multi-turn conversation within the same session](#multi-turn-conversation-within-the-same-session)
+- [Behavior when response is truncated by max_tokens](#behavior-when-response-is-truncated-by-max_tokens)
+- [Output format for responses containing multiple text blocks](#output-format-for-responses-containing-multiple-text-blocks)
+
 ## Text and tool use in the same response
 
 <table>

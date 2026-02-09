@@ -57,6 +57,7 @@ func main() {
 		if fs.notes != "" {
 			buf.WriteString(fs.notes + "\n\n")
 		}
+		writeScenarioIndex(&buf, fs.scenarios)
 		writeScenarioSection(&buf, fs.scenarios)
 		outPath := filepath.Join(docsDir, fs.category+".md")
 		if err := os.WriteFile(outPath, []byte(buf.String()), 0644); err != nil {
@@ -648,6 +649,14 @@ func writeIndexTable(buf *strings.Builder, files []testFileScenarios) {
 	buf.WriteString("## Scenarios\n\n")
 	for _, fs := range files {
 		buf.WriteString("- [" + fs.title + "](docs/" + fs.category + ".md)\n")
+	}
+	buf.WriteString("\n")
+}
+
+func writeScenarioIndex(buf *strings.Builder, scenarios []scenario) {
+	for _, sc := range scenarios {
+		anchor := headingToAnchor(sc.title)
+		buf.WriteString("- [" + sc.title + "](#" + anchor + ")\n")
 	}
 	buf.WriteString("\n")
 }

@@ -2,6 +2,11 @@
 
 > Requires: `CLAUDE_CODE_ENABLE_TASKS=1`
 
+- [TaskCreate tool invocation](#taskcreate-tool-invocation)
+- [TaskList tool invocation](#tasklist-tool-invocation)
+- [TaskGet tool invocation](#taskget-tool-invocation)
+- [TaskUpdate tool invocation](#taskupdate-tool-invocation)
+
 ## TaskCreate tool invocation
 
 <table>

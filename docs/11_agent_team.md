@@ -2,6 +2,12 @@
 
 > Requires: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
 
+- [Team creation via the TeamCreate tool](#team-creation-via-the-teamcreate-tool)
+- [TeamDelete tool behavior when no active team exists](#teamdelete-tool-behavior-when-no-active-team-exists)
+- [SendMessage tool behavior without team context](#sendmessage-tool-behavior-without-team-context)
+- [Spawning teammates via the Task tool](#spawning-teammates-via-the-task-tool)
+- [Full agent team lifecycle (create -> delete) across multiple turns](#full-agent-team-lifecycle-create---delete-across-multiple-turns)
+
 ## Team creation via the TeamCreate tool
 
 <table>

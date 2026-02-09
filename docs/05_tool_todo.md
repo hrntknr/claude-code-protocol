@@ -2,6 +2,8 @@
 
 > `TodoWrite` is the only task management tool in default mode (without `CLAUDE_CODE_ENABLE_TASKS=1`).
 
+- [Task list management via the TodoWrite tool](#task-list-management-via-the-todowrite-tool)
+
 ## Task list management via the TodoWrite tool
 
 <table>

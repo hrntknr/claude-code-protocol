@@ -1,5 +1,8 @@
 # Tool Plan
 
+- [Plan mode transition via the EnterPlanMode tool](#plan-mode-transition-via-the-enterplanmode-tool)
+- [ExitPlanMode tool transitions from plan mode to implementation mode](#exitplanmode-tool-transitions-from-plan-mode-to-implementation-mode)
+
 ## Plan mode transition via the EnterPlanMode tool
 
 <table>

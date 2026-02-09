@@ -1,5 +1,8 @@
 # Error
 
+- [Error handling on tool execution failure](#error-handling-on-tool-execution-failure)
+- [Behavior when receiving API-level SSE error events](#behavior-when-receiving-api-level-sse-error-events)
+
 ## Error handling on tool execution failure
 
 <table>

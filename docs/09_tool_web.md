@@ -1,5 +1,8 @@
 # Tool Web
 
+- [URL fetching behavior of the WebFetch tool](#url-fetching-behavior-of-the-webfetch-tool)
+- [WebSearch tool behavior (may fail due to test environment restrictions)](#websearch-tool-behavior-may-fail-due-to-test-environment-restrictions)
+
 ## URL fetching behavior of the WebFetch tool
 
 <table>

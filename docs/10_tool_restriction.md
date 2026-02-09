@@ -1,5 +1,8 @@
 # Tool Restriction
 
+- [Allowed tools restriction: only specified tools are permitted](#allowed-tools-restriction-only-specified-tools-are-permitted)
+- [Disallowed tools restriction: specified tools are denied](#disallowed-tools-restriction-specified-tools-are-denied)
+
 ## Allowed tools restriction: only specified tools are permitted
 
 <table>

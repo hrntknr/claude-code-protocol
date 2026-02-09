@@ -1,5 +1,9 @@
 # Basic
 
+- [Basic flow for a simple text response](#basic-flow-for-a-simple-text-response)
+- [Single Bash tool use flow](#single-bash-tool-use-flow)
+- [Two-step sequential tool use flow](#two-step-sequential-tool-use-flow)
+
 ## Basic flow for a simple text response
 
 <table>

@@ -1,5 +1,7 @@
 # Tool Interactive
 
+- [AskUserQuestion tool behavior in non-interactive mode](#askuserquestion-tool-behavior-in-non-interactive-mode)
+
 ## AskUserQuestion tool behavior in non-interactive mode
 
 <table>

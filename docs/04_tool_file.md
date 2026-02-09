@@ -1,5 +1,13 @@
 # Tool File
 
+- [File reading via the Read tool](#file-reading-via-the-read-tool)
+- [File creation via the Write tool](#file-creation-via-the-write-tool)
+- [File editing via the Edit tool](#file-editing-via-the-edit-tool)
+- [File pattern matching via the Glob tool](#file-pattern-matching-via-the-glob-tool)
+- [Content search via the Grep tool](#content-search-via-the-grep-tool)
+- [Jupyter notebook editing via the NotebookEdit tool](#jupyter-notebook-editing-via-the-notebookedit-tool)
+- [Multi-step tool chain: Read -> Edit -> Bash](#multi-step-tool-chain-read---edit---bash)
+
 ## File reading via the Read tool
 
 <table>

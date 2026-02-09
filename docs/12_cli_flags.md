@@ -1,5 +1,9 @@
 # Cli Flags
 
+- [Replay user messages via --replay-user-messages flag](#replay-user-messages-via---replay-user-messages-flag)
+- [Partial message streaming via --include-partial-messages flag](#partial-message-streaming-via---include-partial-messages-flag)
+- [Turn limit behavior via --max-turns flag](#turn-limit-behavior-via---max-turns-flag)
+
 ## Replay user messages via --replay-user-messages flag
 
 <table>

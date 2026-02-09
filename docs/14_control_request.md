@@ -3,6 +3,9 @@
 > Stdin input messages for mid-session configuration changes.
 > Uses `control_request`/`control_response` message types.
 
+- [Permission mode change via set_permission_mode control request](#permission-mode-change-via-set_permission_mode-control-request)
+- [Model change via set_model control request](#model-change-via-set_model-control-request)
+
 ## Permission mode change via set_permission_mode control request
 
 <table>

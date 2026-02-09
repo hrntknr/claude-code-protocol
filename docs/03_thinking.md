@@ -1,5 +1,8 @@
 # Thinking
 
+- [Response containing extended thinking blocks](#response-containing-extended-thinking-blocks)
+- [Flow where tool use follows a thinking block](#flow-where-tool-use-follows-a-thinking-block)
+
 ## Response containing extended thinking blocks
 
 <table>

@@ -737,6 +737,11 @@ func simplifyJSON(jsonStr string) string {
 
 func writeHeader(buf *strings.Builder) {
 	buf.WriteString("# Claude Code CLI Protocol\n\n")
+	buf.WriteString("[![Regression Test](https://github.com/hrntknr/claude-code-protocol/actions/workflows/test.yml/badge.svg)](https://github.com/hrntknr/claude-code-protocol/actions/workflows/test.yml)\n\n")
+	buf.WriteString("> **Unofficial** protocol reference reconstructed from analysis of Claude Code's `stream-json` input/output.\n\n")
+	buf.WriteString("**Note**\n")
+	buf.WriteString("- This documentation is auto-generated from test cases.\n")
+	buf.WriteString("- Automated tests (CI) are run against the latest 3 versions of Claude Code CLI.\n\n")
 }
 
 // writeIndexTable writes a Scenarios section with links to per-category docs.

@@ -48,7 +48,6 @@ func TestToolUseTodoWrite(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},

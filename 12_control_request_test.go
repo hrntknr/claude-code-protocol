@@ -45,7 +45,6 @@ func TestControlSetPermissionMode(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(ResultSuccessMessage{
 			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
@@ -107,7 +106,6 @@ func TestControlSetPermissionMode(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(ResultSuccessMessage{
 			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
@@ -162,7 +160,6 @@ func TestControlSetModel(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(ResultSuccessMessage{
 			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
@@ -223,7 +220,6 @@ func TestControlSetModel(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(ResultSuccessMessage{
 			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},

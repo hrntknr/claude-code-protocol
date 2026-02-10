@@ -59,7 +59,6 @@ func TestToolUseAskUserQuestion(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
@@ -189,7 +188,6 @@ func TestAskUserQuestionSuccess(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
@@ -382,7 +380,6 @@ func TestAskUserQuestionDisallowed(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
@@ -518,7 +515,6 @@ func TestAskUserQuestionMultipleDenials(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		// First AskUserQuestion cycle
 		utils.MustJSON(AssistantMessage{
@@ -706,7 +702,6 @@ func TestAskUserQuestionWithParallelTool(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		// AskUserQuestion tool_use (emitted as its own assistant message)
 		utils.MustJSON(AssistantMessage{

@@ -46,7 +46,6 @@ func TestReplayUserMessages(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(UserReplayMessage{
 			MessageBase: MessageBase{Type: TypeUser},
@@ -132,7 +131,6 @@ func TestIncludePartialMessages(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		// stream_event: message_start
 		utils.MustJSON(StreamEventMessage{
@@ -260,7 +258,6 @@ func TestMaxTurnsLimit(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(ResultMaxTurnsMessage{
 			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeErrorMaxTurns},

@@ -115,21 +115,21 @@ func (ContentBlockBase) isContentBlock() {}
 // ```
 type SystemInitMessage struct {
 	MessageBase
-	CWD               string         `json:"cwd"`                 // Working directory
-	SessionID         string         `json:"session_id"`          // Session ID
-	Tools             []string       `json:"tools"`               // Available tools list
-	MCPServers        []string       `json:"mcp_servers"`         // MCP servers list
-	Model             string         `json:"model"`               // Model name
-	PermissionMode    PermissionMode `json:"permissionMode"`      // Permission mode
-	SlashCommands     []string       `json:"slash_commands"`      // Slash commands list
-	APIKeySource      string         `json:"apiKeySource"`        // API key source
-	ClaudeCodeVersion string         `json:"claude_code_version"` // CLI version
-	OutputStyle       string         `json:"output_style"`        // Output style
-	Agents            []string       `json:"agents"`              // Agents list
-	Skills            []string       `json:"skills"`              // Skills list
-	Plugins           []string       `json:"plugins"`             // Plugins list
-	UUID              string         `json:"uuid"`                // Message UUID
-	FastModeState     string         `json:"fast_mode_state"`     // Fast mode state (e.g. "off")
+	CWD               string         `json:"cwd"`                       // Working directory
+	SessionID         string         `json:"session_id"`                // Session ID
+	Tools             []string       `json:"tools"`                     // Available tools list
+	MCPServers        []string       `json:"mcp_servers"`               // MCP servers list
+	Model             string         `json:"model"`                     // Model name
+	PermissionMode    PermissionMode `json:"permissionMode"`            // Permission mode
+	SlashCommands     []string       `json:"slash_commands"`            // Slash commands list
+	APIKeySource      string         `json:"apiKeySource"`              // API key source
+	ClaudeCodeVersion string         `json:"claude_code_version"`       // CLI version
+	OutputStyle       string         `json:"output_style"`              // Output style
+	Agents            []string       `json:"agents"`                    // Agents list
+	Skills            []string       `json:"skills"`                    // Skills list
+	Plugins           []string       `json:"plugins"`                   // Plugins list
+	UUID              string         `json:"uuid"`                      // Message UUID
+	FastModeState     string         `json:"fast_mode_state,omitempty"` // Fast mode state (e.g. "off")
 }
 
 // # system/status

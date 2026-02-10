@@ -39,7 +39,6 @@ func TestSimpleTextResponse(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
@@ -109,7 +108,6 @@ func TestToolUseBash(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
@@ -184,7 +182,6 @@ func TestToolUseMultiStep(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},

@@ -47,7 +47,6 @@ func TestToolError(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
@@ -121,7 +120,6 @@ func TestAPIError(t *testing.T) {
 			Skills:            utils.AnyStringSlice,
 			Plugins:           utils.AnyStringSlice,
 			UUID:              utils.AnyString,
-			FastModeState:     utils.AnyString,
 		}),
 		utils.MustJSON(ResultErrorMessage{
 			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeErrorDuringExecution},

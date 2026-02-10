@@ -111,7 +111,7 @@ func (ContentBlockBase) isContentBlock() {}
 // Also includes extended information such as mcp_servers, model, slash_commands, agents, skills, and plugins.
 //
 // ```json
-// {"type":"system","subtype":"init","cwd":"/path","session_id":"abc","tools":["Bash","Read"],"mcp_servers":[],"model":"claude-opus-4-6","permissionMode":"bypassPermissions","slash_commands":[...],"apiKeySource":"none","claude_code_version":"2.1.37","output_style":"default","agents":[...],"skills":[...],"plugins":[],"uuid":"xxx"}
+// {"type":"system","subtype":"init","cwd":"/path","session_id":"abc","tools":["Bash","Read"],"mcp_servers":[],"model":"claude-opus-4-6","permissionMode":"bypassPermissions","slash_commands":[...],"apiKeySource":"none","claude_code_version":"2.1.37","output_style":"default","agents":[...],"skills":[...],"plugins":[],"uuid":"xxx","fast_mode_state":"off"}
 // ```
 type SystemInitMessage struct {
 	MessageBase
@@ -129,6 +129,7 @@ type SystemInitMessage struct {
 	Skills            []string       `json:"skills"`              // Skills list
 	Plugins           []string       `json:"plugins"`             // Plugins list
 	UUID              string         `json:"uuid"`                // Message UUID
+	FastModeState     string         `json:"fast_mode_state"`     // Fast mode state (e.g. "off")
 }
 
 // # system/status

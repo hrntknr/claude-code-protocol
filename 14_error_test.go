@@ -31,23 +31,7 @@ func TestToolError(t *testing.T) {
 	// The API receives the error as a tool_result with is_error=true,
 	// then returns a normal text response.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -104,23 +88,7 @@ func TestAPIError(t *testing.T) {
 	// subtype "error_during_execution" and an "errors" array containing error
 	// message strings (full stack traces). No assistant messages are emitted.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(ResultErrorMessage{
 			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeErrorDuringExecution},
 			IsError:           false,

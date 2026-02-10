@@ -83,23 +83,7 @@ func TestToolUseTaskCreate(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "create a task"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -186,23 +170,7 @@ func TestToolUseTaskList(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "list all tasks"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -291,23 +259,7 @@ func TestToolUseTaskGet(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "get task 1"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -397,23 +349,7 @@ func TestToolUseTaskUpdate(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "mark task 1 as completed"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{

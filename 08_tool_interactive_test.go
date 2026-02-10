@@ -43,23 +43,7 @@ func TestToolUseAskUserQuestion(t *testing.T) {
 	// (content "Answer questions?"). The API then returns the final text.
 	// The result includes a permission_denials array listing the denied tool.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -172,23 +156,7 @@ func TestAskUserQuestionSuccess(t *testing.T) {
 	// Phase 1: Read until the CLI asks for permission via control_request.
 	output1 := s.ReadUntil("control_request")
 	utils.AssertOutput(t, output1,
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionDefault,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionDefault })),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -364,23 +332,7 @@ func TestAskUserQuestionDisallowed(t *testing.T) {
 	}
 
 	utils.AssertOutput(t, output,
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    utils.AnyString,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString })),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -499,23 +451,7 @@ func TestAskUserQuestionMultipleDenials(t *testing.T) {
 	// user(tool_result, is_error:true) cycle. Both denials are recorded in
 	// the result's permission_denials array.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		// First AskUserQuestion cycle
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
@@ -686,23 +622,7 @@ func TestAskUserQuestionWithParallelTool(t *testing.T) {
 	// containing "Sibling tool call errored" (because a sibling tool errored).
 	// Only AskUserQuestion appears in permission_denials.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		// AskUserQuestion tool_use (emitted as its own assistant message)
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},

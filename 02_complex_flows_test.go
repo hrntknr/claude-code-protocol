@@ -32,23 +32,7 @@ func TestTextAndToolUseInSameResponse(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "check and run combined"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -120,23 +104,7 @@ func TestParallelToolUse(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "run two commands in parallel"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -190,23 +158,7 @@ func TestMultiTurnConversation(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "first question"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -302,23 +254,7 @@ func TestMaxTokensStopReason(t *testing.T) {
 	// message about the max output token limit. Eventually it produces a
 	// result with subtype "success" but is_error true.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -373,23 +309,7 @@ func TestMultipleTextBlocks(t *testing.T) {
 	// Observed: Each text content block is emitted as a separate assistant
 	// message. The result contains only the LAST text block's content.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{

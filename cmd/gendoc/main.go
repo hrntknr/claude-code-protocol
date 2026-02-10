@@ -516,7 +516,8 @@ func exprSource(fset *token.FileSet, expr ast.Expr) string {
 // buildEvalSource builds the Go source for evaluating MustJSON expressions.
 // extraDecls is inserted before main() to declare stub variables for identifiers
 // that are undefined in the temporary evaluation context (e.g. test-local variables).
-func buildEvalSource(sources []string, extraDecls string) string {
+// helperFuncs contains function source code extracted from helpers_test.go.
+func buildEvalSource(sources []string, extraDecls, helperFuncs string) string {
 	var src strings.Builder
 	src.WriteString("package main\n\nimport (\n\t\"fmt\"\n")
 	src.WriteString("\t. \"github.com/hrntknr/claudecodeprotocol\"\n")
@@ -525,6 +526,11 @@ func buildEvalSource(sources []string, extraDecls string) string {
 	// Suppress unused import errors.
 	src.WriteString("var _ = utils.MustJSON\n")
 	src.WriteString("var _ MessageBase\n\n")
+	// Override CLI version so all version-gated fields are included in documentation.
+	src.WriteString("func init() { utils.TestCLIVersion = \"99.99.99\" }\n\n")
+	if helperFuncs != "" {
+		src.WriteString(helperFuncs + "\n")
+	}
 	if extraDecls != "" {
 		src.WriteString(extraDecls + "\n")
 	}
@@ -552,6 +558,27 @@ func parseUndefinedIdents(stderr string) []string {
 	return names
 }
 
+// extractHelperFuncs reads helpers_test.go and returns the source code of all
+// function declarations for inclusion in the gendoc eval program.
+func extractHelperFuncs(root string) string {
+	path := filepath.Join(root, "helpers_test.go")
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, path, nil, 0)
+	if err != nil {
+		return ""
+	}
+	var buf bytes.Buffer
+	for _, decl := range f.Decls {
+		fn, ok := decl.(*ast.FuncDecl)
+		if !ok {
+			continue
+		}
+		printer.Fprint(&buf, fset, fn)
+		buf.WriteString("\n\n")
+	}
+	return buf.String()
+}
+
 // evalExpressions builds a temporary Go file that evaluates all source expressions
 // via utils.MustJSON and returns the JSON strings.
 // If compilation fails due to undefined identifiers (e.g. test-local variables like
@@ -560,6 +587,8 @@ func evalExpressions(root string, sources []string) []string {
 	if len(sources) == 0 {
 		return nil
 	}
+
+	helperFuncs := extractHelperFuncs(root)
 
 	tmpDir, err := os.MkdirTemp(root, ".gendoc-")
 	if err != nil {
@@ -570,7 +599,7 @@ func evalExpressions(root string, sources []string) []string {
 	tmpFile := filepath.Join(tmpDir, "main.go")
 
 	// First attempt: no extra declarations.
-	src := buildEvalSource(sources, "")
+	src := buildEvalSource(sources, "", helperFuncs)
 	if err := os.WriteFile(tmpFile, []byte(src), 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "write temp file: %v\n", err)
 		os.Exit(1)
@@ -589,7 +618,7 @@ func evalExpressions(root string, sources []string) []string {
 			for _, name := range undefs {
 				decls.WriteString("var " + name + " string\n")
 			}
-			src = buildEvalSource(sources, decls.String())
+			src = buildEvalSource(sources, decls.String(), helperFuncs)
 			if err := os.WriteFile(tmpFile, []byte(src), 0644); err != nil {
 				fmt.Fprintf(os.Stderr, "write temp file: %v\n", err)
 				os.Exit(1)

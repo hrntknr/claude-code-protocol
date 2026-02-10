@@ -39,23 +39,7 @@ func TestToolUseTeamCreate(t *testing.T) {
 	// JSON with team_name, team_file_path, and lead_agent_id. The tool_result
 	// is NOT an error (is_error is absent). Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -152,23 +136,7 @@ func TestToolUseTeamDelete(t *testing.T) {
 	// a tool_result with success:true and message "No team name found, nothing
 	// to clean up". Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -266,23 +234,7 @@ func TestToolUseSendMessage(t *testing.T) {
 	// (sender: "team-lead", target: "@nonexistent-agent"). The message is
 	// written to a file-based inbox regardless. Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -393,23 +345,7 @@ func TestToolUseTaskSpawnTeammate(t *testing.T) {
 	// including agent_id, name, team_name, color, model. The teammate is spawned
 	// as a background process (in-process mode). Then final text and result.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -532,23 +468,7 @@ func TestAgentTeamLifecycle(t *testing.T) {
 	}))
 	// Observed: TeamCreate emits tool_use → tool_result → final text → result.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(SystemInitMessage{
-			MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
-			CWD:               utils.AnyString,
-			SessionID:         utils.AnyString,
-			Tools:             utils.AnyStringSlice,
-			MCPServers:        utils.AnyStringSlice,
-			Model:             utils.AnyString,
-			PermissionMode:    PermissionBypassPermissions,
-			SlashCommands:     utils.AnyStringSlice,
-			APIKeySource:      utils.AnyString,
-			ClaudeCodeVersion: utils.AnyString,
-			OutputStyle:       utils.AnyString,
-			Agents:            utils.AnyStringSlice,
-			Skills:            utils.AnyStringSlice,
-			Plugins:           utils.AnyStringSlice,
-			UUID:              utils.AnyString,
-		}),
+		utils.MustJSON(defaultInitPattern()),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{

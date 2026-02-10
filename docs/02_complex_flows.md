@@ -36,7 +36,8 @@
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": ""
+  "uuid": "",
+  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttext">assistant(text)</a></td><td><pre lang="json">
@@ -108,7 +109,8 @@
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": ""
+  "uuid": "",
+  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttext">assistant(text)</a></td><td><pre lang="json">
@@ -180,7 +182,8 @@
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": ""
+  "uuid": "",
+  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttext">assistant(text)</a></td><td><pre lang="json">
@@ -298,7 +301,8 @@
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": ""
+  "uuid": "",
+  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttext">assistant(text)</a></td><td><pre lang="json">
@@ -371,7 +375,8 @@
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": ""
+  "uuid": "",
+  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttext">assistant(text)</a></td><td><pre lang="json">

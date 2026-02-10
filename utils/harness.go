@@ -308,7 +308,7 @@ func AssertOutput(t *testing.T, output []json.RawMessage, expectedPatterns ...st
 
 // jsonExact returns true if actual matches expect.
 // All keys in expect must exist in actual with matching values.
-// Extra keys in actual are ignored (partial matching).
+// Extra keys in actual are allowed only if their value is null (nil).
 // All elements in arrays must match (same length).
 //
 // Sentinel value detection:
@@ -344,7 +344,14 @@ func jsonExact(actual, expect any) bool {
 				return false
 			}
 		}
-		// Extra keys in actual are ignored (partial matching).
+		// Extra keys in actual are allowed only if their value is null.
+		for k, av := range a {
+			if _, ok := e[k]; !ok {
+				if av != nil {
+					return false
+				}
+			}
+		}
 		return true
 	case []any:
 		// Array sentinel: ["<any>"] matches any array.

@@ -34,7 +34,8 @@
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": ""
+  "uuid": "",
+  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#user">user</a></td><td><pre lang="json">
@@ -118,7 +119,8 @@
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": ""
+  "uuid": "",
+  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#stream_event">stream_event</a></td><td><pre lang="json">
@@ -238,7 +240,8 @@
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": ""
+  "uuid": "",
+  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resulterror_max_turns">result/error_max_turns</a></td><td><pre lang="json">

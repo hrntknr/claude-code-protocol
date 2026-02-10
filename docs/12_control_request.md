@@ -36,7 +36,8 @@
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": ""
+  "uuid": "",
+  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
@@ -101,7 +102,8 @@
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": ""
+  "uuid": "",
+  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
@@ -153,7 +155,8 @@
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": ""
+  "uuid": "",
+  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
@@ -218,7 +221,8 @@
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": ""
+  "uuid": "",
+  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">

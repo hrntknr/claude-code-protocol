@@ -2,7 +2,7 @@
 
 [![Regression Test](https://github.com/hrntknr/claude-code-protocol/actions/workflows/test.yml/badge.svg)](https://github.com/hrntknr/claude-code-protocol/actions/workflows/test.yml)
 
-> **Unofficial** protocol reference reconstructed from analysis of Claude Code's `stream-json` output.
+> **Unofficial** protocol reference reconstructed from analysis of Claude Code's `stream-json` input/output.
 
 **Note**
 - This documentation is auto-generated from test cases.

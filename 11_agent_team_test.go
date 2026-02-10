@@ -14,9 +14,10 @@ const agentTeamEnv = "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1"
 
 // Team creation via the TeamCreate tool
 func TestToolUseTeamCreate(t *testing.T) {
+	t.Parallel()
 	teamName := "proto-test-team-create"
 
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: TeamCreate
 		utils.ToolUseResponse("toolu_tc_001", "TeamCreate", map[string]any{
 			"team_name":   teamName,
@@ -24,7 +25,7 @@ func TestToolUseTeamCreate(t *testing.T) {
 		}),
 		// Request 2: Final text
 		utils.TextResponse("Team created."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -116,12 +117,13 @@ func TestToolUseTeamCreate(t *testing.T) {
 
 // TeamDelete tool behavior when no active team exists
 func TestToolUseTeamDelete(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: TeamDelete (no active team)
 		utils.ToolUseResponse("toolu_td_001", "TeamDelete", map[string]any{}),
 		// Request 2: Final text
 		utils.TextResponse("Handled team deletion."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -208,7 +210,8 @@ func TestToolUseTeamDelete(t *testing.T) {
 
 // SendMessage tool behavior without team context
 func TestToolUseSendMessage(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: SendMessage (no team context)
 		utils.ToolUseResponse("toolu_sm_001", "SendMessage", map[string]any{
 			"type":      "message",
@@ -218,7 +221,7 @@ func TestToolUseSendMessage(t *testing.T) {
 		}),
 		// Request 2: Final text
 		utils.TextResponse("Handled send message."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -306,9 +309,10 @@ func TestToolUseSendMessage(t *testing.T) {
 
 // Spawning teammates via the Task tool
 func TestToolUseTaskSpawnTeammate(t *testing.T) {
+	t.Parallel()
 	teamName := "proto-test-task-teammate"
 
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: TeamCreate first (needed for teammate spawn)
 		utils.ToolUseResponse("toolu_tc_001", "TeamCreate", map[string]any{
 			"team_name":   teamName,
@@ -329,7 +333,7 @@ func TestToolUseTaskSpawnTeammate(t *testing.T) {
 		utils.TextResponse("Hello from teammate."),
 		// Final text from lead
 		utils.TextResponse("Teammate completed its task."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -438,9 +442,10 @@ func TestToolUseTaskSpawnTeammate(t *testing.T) {
 
 // Full agent team lifecycle (create -> delete) across multiple turns
 func TestAgentTeamLifecycle(t *testing.T) {
+	t.Parallel()
 	teamName := "proto-test-lifecycle"
 
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Turn 1, Request 1: TeamCreate
 		utils.ToolUseResponse("toolu_tc_001", "TeamCreate", map[string]any{
 			"team_name":   teamName,
@@ -454,7 +459,7 @@ func TestAgentTeamLifecycle(t *testing.T) {
 		utils.ToolUseResponse("toolu_td_001", "TeamDelete", map[string]any{}),
 		// Request 2: Final text
 		utils.TextResponse("Team deleted."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 

@@ -11,6 +11,7 @@ import (
 
 // Replay user messages via --replay-user-messages flag
 func TestReplayUserMessages(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.TextResponse("Echoed!"),
 	}}
@@ -75,6 +76,7 @@ func TestReplayUserMessages(t *testing.T) {
 
 // Partial message streaming via --include-partial-messages flag
 func TestIncludePartialMessages(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.TextResponse("Streamed response."),
 	}}
@@ -184,7 +186,8 @@ func TestIncludePartialMessages(t *testing.T) {
 
 // Turn limit behavior via --max-turns flag
 func TestMaxTurnsLimit(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Tool use to force multi-turn: the stub returns tool_use, but
 		// --max-turns 1 should stop after the first turn.
 		utils.ToolUseResponse("toolu_mt_001", "Bash", map[string]any{
@@ -192,7 +195,7 @@ func TestMaxTurnsLimit(t *testing.T) {
 			"description": "First turn command",
 		}),
 		utils.TextResponse("Turn completed."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -230,6 +233,7 @@ func TestMaxTurnsLimit(t *testing.T) {
 
 // Tools restriction via --tools flag
 func TestToolsRestriction(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.TextResponse("OK"),
 	}}
@@ -290,6 +294,7 @@ func TestToolsRestriction(t *testing.T) {
 
 // Permission mode variation via --permission-mode flag
 func TestPermissionModeDefault(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.TextResponse("Hello from default mode."),
 	}}
@@ -331,6 +336,7 @@ func TestPermissionModeDefault(t *testing.T) {
 
 // Model override via --model flag
 func TestModelOverride(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.TextResponse("Hello from sonnet."),
 	}}

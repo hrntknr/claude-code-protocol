@@ -9,6 +9,7 @@ import (
 
 // Response containing extended thinking blocks
 func TestThinkingResponse(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.ThinkingResponse(
 			"Let me think about this step by step...",
@@ -86,7 +87,8 @@ func TestThinkingResponse(t *testing.T) {
 
 // Flow where tool use follows a thinking block
 func TestThinkingWithToolUse(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: thinking + tool_use
 		utils.ThinkingAndToolUseResponse(
 			"I need to run a command to check...",
@@ -97,7 +99,7 @@ func TestThinkingWithToolUse(t *testing.T) {
 		),
 		// Request 2: final text
 		utils.TextResponse("After thinking and running the command: thinking-tool-test"),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 

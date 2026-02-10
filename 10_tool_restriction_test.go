@@ -12,17 +12,18 @@ import (
 
 // Allowed tools restriction: only specified tools are permitted
 func TestAllowedToolsRestriction(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	targetFile := filepath.Join(tmpDir, "restricted.txt")
 
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// API tells CLI to use Write tool (not in allowed list)
 		utils.ToolUseResponse("toolu_wr_001", "Write", map[string]any{
 			"file_path": targetFile,
 			"content":   "should-not-be-written",
 		}),
 		utils.TextResponse("Write tool was denied."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -113,17 +114,18 @@ func TestAllowedToolsRestriction(t *testing.T) {
 
 // Disallowed tools restriction: specified tools are denied
 func TestDisallowedToolsRestriction(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	targetFile := filepath.Join(tmpDir, "denied.txt")
 
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// API tells CLI to use Write tool (in disallowed list)
 		utils.ToolUseResponse("toolu_wr_001", "Write", map[string]any{
 			"file_path": targetFile,
 			"content":   "should-not-be-written",
 		}),
 		utils.TextResponse("Write tool was denied."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 

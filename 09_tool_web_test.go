@@ -9,23 +9,20 @@ import (
 
 // URL fetching behavior of the WebFetch tool
 func TestToolUseWebFetch(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{
 		StaticPages: map[string]string{
 			"/static/test-page": "<html><body><h1>Test Page</h1><p>Content for WebFetch test.</p></body></html>",
 		},
-		Responses: utils.WithInit(
+		Responses: [][]utils.SSEEvent{
 			// Request 1: WebFetch tool_use
 			utils.ToolUseResponse("toolu_wf_001", "WebFetch", map[string]any{
 				"url":    "", // placeholder, will be set after Start()
 				"prompt": "What does the page say?",
 			}),
-			// Extra responses for WebFetch's internal haiku processing
-			utils.TextResponse("ok"),
-			utils.TextResponse("ok"),
-			utils.TextResponse("ok"),
 			// Final text
 			utils.TextResponse("The page contains a heading: Test Page"),
-		),
+		},
 	}
 	stub.Start()
 	defer stub.Close()
@@ -33,17 +30,13 @@ func TestToolUseWebFetch(t *testing.T) {
 	// Update the WebFetch URL to point to our stub's static page.
 	// The ToolUseResponse is already built, so we rebuild with the correct URL.
 	targetURL := stub.URL() + "/static/test-page"
-	stub.Responses = utils.WithInit(
+	stub.Responses = [][]utils.SSEEvent{
 		utils.ToolUseResponse("toolu_wf_001", "WebFetch", map[string]any{
 			"url":    targetURL,
 			"prompt": "What does the page say?",
 		}),
-		// Extra responses for WebFetch's internal haiku processing
-		utils.TextResponse("ok"),
-		utils.TextResponse("ok"),
-		utils.TextResponse("ok"),
 		utils.TextResponse("The page contains a heading: Test Page"),
-	)
+	}
 
 	s := utils.NewSession(t, stub.URL())
 	defer s.Close()
@@ -112,12 +105,13 @@ func TestToolUseWebFetch(t *testing.T) {
 
 // WebSearch tool behavior (may fail due to test environment restrictions)
 func TestToolUseWebSearch(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.ToolUseResponse("toolu_ws_001", "WebSearch", map[string]any{
 			"query": "protocol test query",
 		}),
 		utils.TextResponse("Search completed."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 

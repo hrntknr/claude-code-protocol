@@ -10,7 +10,8 @@ import (
 
 // AskUserQuestion tool behavior in non-interactive mode
 func TestToolUseAskUserQuestion(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: AskUserQuestion tool_use
 		utils.ToolUseResponse("toolu_ask_001", "AskUserQuestion", map[string]any{
 			"questions": []any{
@@ -27,7 +28,7 @@ func TestToolUseAskUserQuestion(t *testing.T) {
 		}),
 		// Request 2: Final text (after auto-answer or user interaction)
 		utils.TextResponse("You chose Go. Let me proceed with Go."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -122,7 +123,8 @@ func TestToolUseAskUserQuestion(t *testing.T) {
 // The test explicitly sends a control_response on stdin to document
 // the bidirectional protocol: control_request (stdout) → control_response (stdin).
 func TestAskUserQuestionSuccess(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: AskUserQuestion tool_use
 		utils.ToolUseResponse("toolu_ask_ok_001", "AskUserQuestion", map[string]any{
 			"questions": []any{
@@ -139,7 +141,7 @@ func TestAskUserQuestionSuccess(t *testing.T) {
 		}),
 		// Request 2: Final text after user answers
 		utils.TextResponse("You chose Red."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -274,7 +276,8 @@ func TestAskUserQuestionSuccess(t *testing.T) {
 
 // AskUserQuestion with --disallowedTools: treated as "no such tool" error, not permission denial
 func TestAskUserQuestionDisallowed(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: API sends AskUserQuestion tool_use (but tool is disallowed)
 		utils.ToolUseResponse("toolu_ask_dis_001", "AskUserQuestion", map[string]any{
 			"questions": []any{
@@ -291,7 +294,7 @@ func TestAskUserQuestionDisallowed(t *testing.T) {
 		}),
 		// Request 2: Final text after error
 		utils.TextResponse("Understood, I will not ask questions."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -405,7 +408,8 @@ func TestAskUserQuestionDisallowed(t *testing.T) {
 
 // Multiple AskUserQuestion denials in a single session
 func TestAskUserQuestionMultipleDenials(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: First AskUserQuestion
 		utils.ToolUseResponse("toolu_ask_m1", "AskUserQuestion", map[string]any{
 			"questions": []any{
@@ -436,7 +440,7 @@ func TestAskUserQuestionMultipleDenials(t *testing.T) {
 		}),
 		// Request 3: Final text after both denials
 		utils.TextResponse("I will proceed without asking."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -573,7 +577,8 @@ func TestAskUserQuestionMultipleDenials(t *testing.T) {
 
 // AskUserQuestion and Bash in parallel: AskUserQuestion denied, Bash succeeds
 func TestAskUserQuestionWithParallelTool(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: Parallel tool_use — AskUserQuestion + Bash in one message
 		utils.MultiToolUseResponse(
 			utils.ToolCall{
@@ -604,7 +609,7 @@ func TestAskUserQuestionWithParallelTool(t *testing.T) {
 		),
 		// Request 2: Final text after parallel results
 		utils.TextResponse("Bash succeeded, question was denied."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 

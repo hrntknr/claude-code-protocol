@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 )
 
@@ -108,6 +109,15 @@ func (s *StubAPIServer) handleMessages(w http.ResponseWriter, r *http.Request) {
 		s.mu.Unlock()
 	}
 
+	// Auto-detect haiku init requests by checking the model field.
+	// The CLI makes internal haiku requests (quota check, file-change detection)
+	// before the main request. These are answered with a dummy "ok" response
+	// without consuming from the Responses queue.
+	if model, _ := body["model"].(string); strings.Contains(model, "haiku") {
+		s.writeSSE(w, flusher, TextResponse("ok"))
+		return
+	}
+
 	s.mu.Lock()
 	idx := s.reqCount
 	if idx >= len(s.Responses) {
@@ -116,11 +126,15 @@ func (s *StubAPIServer) handleMessages(w http.ResponseWriter, r *http.Request) {
 	s.reqCount++
 	s.mu.Unlock()
 
+	s.writeSSE(w, flusher, s.Responses[idx])
+}
+
+func (s *StubAPIServer) writeSSE(w http.ResponseWriter, flusher http.Flusher, events []SSEEvent) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	for _, e := range s.Responses[idx] {
+	for _, e := range events {
 		data, err := json.Marshal(e.Data)
 		if err != nil {
 			return
@@ -371,18 +385,4 @@ func ErrorSSEResponse(errorType, message string) []SSEEvent {
 			},
 		},
 	}
-}
-
-// InitResponses returns 2 dummy TextResponse entries to absorb the CLI's
-// internal haiku init requests (quota check + file-change detection).
-func InitResponses() [][]SSEEvent {
-	return [][]SSEEvent{
-		TextResponse("ok"),
-		TextResponse("ok"),
-	}
-}
-
-// WithInit prepends 2 init-absorbing dummy responses to the given responses.
-func WithInit(responses ...[]SSEEvent) [][]SSEEvent {
-	return append(InitResponses(), responses...)
 }

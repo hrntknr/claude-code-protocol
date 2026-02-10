@@ -9,6 +9,7 @@ import (
 
 // Basic flow for a simple text response
 func TestSimpleTextResponse(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.TextResponse("Hello!"),
 	}}
@@ -56,6 +57,7 @@ func TestSimpleTextResponse(t *testing.T) {
 
 // Single Bash tool use flow
 func TestToolUseBash(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: API tells CLI to run a Bash command
 		utils.ToolUseResponse("toolu_bash_001", "Bash", map[string]any{
@@ -109,6 +111,7 @@ func TestToolUseBash(t *testing.T) {
 
 // Two-step sequential tool use flow
 func TestToolUseMultiStep(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: First Bash tool use
 		utils.ToolUseResponse("toolu_bash_001", "Bash", map[string]any{

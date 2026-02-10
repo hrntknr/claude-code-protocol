@@ -13,6 +13,7 @@ const enableTasksEnv = "CLAUDE_CODE_ENABLE_TASKS=1"
 
 // Task management tools replace TodoWrite
 func TestTaskToolsEnabled(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.TextResponse("OK"),
 	}}
@@ -64,14 +65,15 @@ func TestTaskToolsEnabled(t *testing.T) {
 
 // TaskCreate tool invocation
 func TestToolUseTaskCreate(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.ToolUseResponse("toolu_tc_001", "TaskCreate", map[string]any{
 			"subject":     "Test task",
 			"description": "A test task for protocol observation",
 			"activeForm":  "Creating test task",
 		}),
 		utils.TextResponse("Task created."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -155,10 +157,11 @@ func TestToolUseTaskCreate(t *testing.T) {
 
 // TaskList tool invocation
 func TestToolUseTaskList(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.ToolUseResponse("toolu_tl_001", "TaskList", map[string]any{}),
 		utils.TextResponse("No tasks found."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -242,12 +245,13 @@ func TestToolUseTaskList(t *testing.T) {
 
 // TaskGet tool invocation
 func TestToolUseTaskGet(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.ToolUseResponse("toolu_tg_001", "TaskGet", map[string]any{
 			"taskId": "1",
 		}),
 		utils.TextResponse("Task details retrieved."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -331,13 +335,14 @@ func TestToolUseTaskGet(t *testing.T) {
 
 // TaskUpdate tool invocation
 func TestToolUseTaskUpdate(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.ToolUseResponse("toolu_tu_001", "TaskUpdate", map[string]any{
 			"taskId": "1",
 			"status": "completed",
 		}),
 		utils.TextResponse("Task updated."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 

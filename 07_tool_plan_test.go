@@ -9,12 +9,13 @@ import (
 
 // Plan mode transition via the EnterPlanMode tool
 func TestToolUseEnterPlanMode(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: EnterPlanMode tool_use
 		utils.ToolUseResponse("toolu_plan_001", "EnterPlanMode", map[string]any{}),
 		// Request 2: Final text after plan mode transition
 		utils.TextResponse("I have entered plan mode. Let me explore the codebase."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -109,12 +110,13 @@ func TestToolUseEnterPlanMode(t *testing.T) {
 // The test explicitly sends a control_response on stdin to document
 // the bidirectional protocol: control_request (stdout) → control_response (stdin).
 func TestExitPlanModeSuccess(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: ExitPlanMode tool_use
 		utils.ToolUseResponse("toolu_exit_ok_001", "ExitPlanMode", map[string]any{}),
 		// Request 2: Final text after plan approval
 		utils.TextResponse("Plan approved, proceeding."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -234,12 +236,13 @@ func TestExitPlanModeSuccess(t *testing.T) {
 
 // ExitPlanMode tool transitions from plan mode to implementation mode
 func TestToolUseExitPlanMode(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: ExitPlanMode
 		utils.ToolUseResponse("toolu_exit_001", "ExitPlanMode", map[string]any{}),
 		// Request 2: Final text after exiting plan mode
 		utils.TextResponse("Plan approved, proceeding with implementation."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 

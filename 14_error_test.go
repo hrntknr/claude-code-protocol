@@ -9,14 +9,15 @@ import (
 
 // Error handling on tool execution failure
 func TestToolError(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: Read a non-existent file
 		utils.ToolUseResponse("toolu_err_001", "Read", map[string]any{
 			"file_path": "/tmp/this-file-does-not-exist-for-test-12345.txt",
 		}),
 		// Request 2: The API acknowledges the error and responds
 		utils.TextResponse("The file does not exist. Let me handle this error."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -69,6 +70,7 @@ func TestToolError(t *testing.T) {
 
 // Behavior when receiving API-level SSE error events
 func TestAPIError(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// All requests (including init) get the same error.
 		// The CLI should handle the API error.

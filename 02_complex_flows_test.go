@@ -9,7 +9,8 @@ import (
 
 // Text and tool use in the same response
 func TestTextAndToolUseInSameResponse(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: text + tool_use in one response
 		utils.TextAndToolUseResponse(
 			"Let me check that.",
@@ -20,7 +21,7 @@ func TestTextAndToolUseInSameResponse(t *testing.T) {
 		),
 		// Request 2: final text after tool execution
 		utils.TextResponse("Done. The output was: combined-test"),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -70,7 +71,8 @@ func TestTextAndToolUseInSameResponse(t *testing.T) {
 
 // Parallel invocation of multiple tools
 func TestParallelToolUse(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: two tool_use blocks in one response
 		utils.MultiToolUseResponse(
 			utils.ToolCall{
@@ -92,7 +94,7 @@ func TestParallelToolUse(t *testing.T) {
 		),
 		// Request 2: final text after both tool executions
 		utils.TextResponse("Both commands ran: parallel-one and parallel-two"),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -142,10 +144,11 @@ func TestParallelToolUse(t *testing.T) {
 
 // Multi-turn conversation within the same session
 func TestMultiTurnConversation(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.TextResponse("First answer."),
 		utils.TextResponse("Second answer."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -236,6 +239,7 @@ func TestMultiTurnConversation(t *testing.T) {
 
 // Behavior when response is truncated by max_tokens
 func TestMaxTokensStopReason(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.MaxTokensTextResponse("This response was truncated because it hit the max"),
 	}}
@@ -293,6 +297,7 @@ func TestMaxTokensStopReason(t *testing.T) {
 
 // Output format for responses containing multiple text blocks
 func TestMultipleTextBlocks(t *testing.T) {
+	t.Parallel()
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		utils.MultiTextResponse("First paragraph.", "Second paragraph."),
 	}}

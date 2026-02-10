@@ -12,20 +12,21 @@ import (
 
 // File reading via the Read tool
 func TestToolUseRead(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.txt")
 	if err := os.WriteFile(testFile, []byte("file-content-for-read-test"), 0644); err != nil {
 		t.Fatalf("setup: write test file: %v", err)
 	}
 
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: Read the file
 		utils.ToolUseResponse("toolu_read_001", "Read", map[string]any{
 			"file_path": testFile,
 		}),
 		// Request 2: Final text
 		utils.TextResponse("The file contains: file-content-for-read-test"),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -75,10 +76,11 @@ func TestToolUseRead(t *testing.T) {
 
 // File creation via the Write tool
 func TestToolUseWrite(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	targetFile := filepath.Join(tmpDir, "output.txt")
 
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: Write a new file
 		utils.ToolUseResponse("toolu_write_001", "Write", map[string]any{
 			"file_path": targetFile,
@@ -86,7 +88,7 @@ func TestToolUseWrite(t *testing.T) {
 		}),
 		// Request 2: Final text
 		utils.TextResponse("File created successfully."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -145,13 +147,14 @@ func TestToolUseWrite(t *testing.T) {
 
 // File editing via the Edit tool
 func TestToolUseEdit(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "editable.txt")
 	if err := os.WriteFile(testFile, []byte("line1\nold-content\nline3\n"), 0644); err != nil {
 		t.Fatalf("setup: write test file: %v", err)
 	}
 
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: Read the file first (Edit requires prior Read)
 		utils.ToolUseResponse("toolu_read_001", "Read", map[string]any{
 			"file_path": testFile,
@@ -164,7 +167,7 @@ func TestToolUseEdit(t *testing.T) {
 		}),
 		// Request 3: Final text
 		utils.TextResponse("File edited successfully."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -226,6 +229,7 @@ func TestToolUseEdit(t *testing.T) {
 
 // File pattern matching via the Glob tool
 func TestToolUseGlob(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	for _, name := range []string{"a.txt", "b.txt", "c.log"} {
 		if err := os.WriteFile(filepath.Join(tmpDir, name), []byte(name), 0644); err != nil {
@@ -233,14 +237,14 @@ func TestToolUseGlob(t *testing.T) {
 		}
 	}
 
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: Glob for .txt files
 		utils.ToolUseResponse("toolu_glob_001", "Glob", map[string]any{
 			"pattern": filepath.Join(tmpDir, "*.txt"),
 		}),
 		// Request 2: Final text
 		utils.TextResponse("Found 2 text files."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -290,6 +294,7 @@ func TestToolUseGlob(t *testing.T) {
 
 // Content search via the Grep tool
 func TestToolUseGrep(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	if err := os.WriteFile(
 		filepath.Join(tmpDir, "searchable.txt"),
@@ -299,7 +304,7 @@ func TestToolUseGrep(t *testing.T) {
 		t.Fatalf("setup: write file: %v", err)
 	}
 
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: Grep for pattern
 		utils.ToolUseResponse("toolu_grep_001", "Grep", map[string]any{
 			"pattern": "target-pattern",
@@ -307,7 +312,7 @@ func TestToolUseGrep(t *testing.T) {
 		}),
 		// Request 2: Final text
 		utils.TextResponse("Found the pattern in searchable.txt."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -357,6 +362,7 @@ func TestToolUseGrep(t *testing.T) {
 
 // Jupyter notebook editing via the NotebookEdit tool
 func TestToolUseNotebookEdit(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	nbFile := filepath.Join(tmpDir, "test.ipynb")
 	nbContent := `{
@@ -371,7 +377,7 @@ func TestToolUseNotebookEdit(t *testing.T) {
 		t.Fatalf("setup: write notebook: %v", err)
 	}
 
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: Insert a new cell
 		utils.ToolUseResponse("toolu_nb_001", "NotebookEdit", map[string]any{
 			"notebook_path": nbFile,
@@ -382,7 +388,7 @@ func TestToolUseNotebookEdit(t *testing.T) {
 		}),
 		// Request 2: Final text
 		utils.TextResponse("Inserted a new cell into the notebook."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -441,13 +447,14 @@ func TestToolUseNotebookEdit(t *testing.T) {
 
 // Multi-step tool chain: Read -> Edit -> Bash
 func TestLongToolChain(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "chain.txt")
 	if err := os.WriteFile(testFile, []byte("original-content"), 0644); err != nil {
 		t.Fatalf("setup: write test file: %v", err)
 	}
 
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Step 1: Read the file
 		utils.ToolUseResponse("toolu_chain_001", "Read", map[string]any{
 			"file_path": testFile,
@@ -465,7 +472,7 @@ func TestLongToolChain(t *testing.T) {
 		}),
 		// Step 4: Final text
 		utils.TextResponse("Chain complete: read, edited, and verified."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 

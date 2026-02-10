@@ -10,7 +10,8 @@ import (
 
 // Task list management via the TodoWrite tool
 func TestToolUseTodoWrite(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: Create a todo list
 		utils.ToolUseResponse("toolu_todo_001", "TodoWrite", map[string]any{
 			"todos": []any{
@@ -20,7 +21,7 @@ func TestToolUseTodoWrite(t *testing.T) {
 		}),
 		// Request 2: Final text
 		utils.TextResponse("Created a todo list with 2 items."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 

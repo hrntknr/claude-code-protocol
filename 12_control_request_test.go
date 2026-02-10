@@ -11,12 +11,13 @@ import (
 
 // Permission mode change via set_permission_mode control request
 func TestControlSetPermissionMode(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Turn 1
 		utils.TextResponse("Ready."),
 		// Turn 2 (after mode change, CLI re-inits then processes user message)
 		utils.TextResponse("Acknowledged."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 
@@ -94,12 +95,13 @@ func TestControlSetPermissionMode(t *testing.T) {
 
 // Model change via set_model control request
 func TestControlSetModel(t *testing.T) {
-	stub := &utils.StubAPIServer{Responses: utils.WithInit(
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Turn 1
 		utils.TextResponse("Ready."),
 		// Turn 2 (after model change, CLI re-inits then processes user message)
 		utils.TextResponse("Acknowledged."),
-	)}
+	}}
 	stub.Start()
 	defer stub.Close()
 

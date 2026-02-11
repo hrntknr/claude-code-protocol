@@ -3,6 +3,7 @@
 - [Replay user messages via --replay-user-messages flag](#replay-user-messages-via---replay-user-messages-flag)
 - [Partial message streaming via --include-partial-messages flag](#partial-message-streaming-via---include-partial-messages-flag)
 - [Turn limit behavior via --max-turns flag](#turn-limit-behavior-via---max-turns-flag)
+- [fast_mode_state defaults to "off" without authentication](#fast_mode_state-defaults-to-off-without-authentication)
 
 ## Replay user messages via --replay-user-messages flag
 
@@ -196,6 +197,38 @@
   "permission_denials": [],
   "uuid": "",
   "errors": []
+}
+</pre></td></tr>
+</table>
+
+## fast_mode_state defaults to "off" without authentication
+
+<table>
+<tr><th>direction</th><th>message</th><th>json</th></tr>
+<tr><td>&lt;-</td><td><a href="../README.md#user">user</a></td><td><pre lang="json">
+{
+  "type": "user",
+  "message": {
+    "role": "user",
+    "content": "hello"
+  }
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 0,
+  "duration_api_ms": 0,
+  "num_turns": 0,
+  "result": "Hello",
+  "session_id": "",
+  "total_cost_usd": 0,
+  "usage": {},
+  "modelUsage": {},
+  "permission_denials": [],
+  "uuid": ""
 }
 </pre></td></tr>
 </table>

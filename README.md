@@ -24,6 +24,7 @@
 - [Control Request](docs/12_control_request.md)
 - [Cli Flags](docs/13_cli_flags.md)
 - [Error](docs/14_error.md)
+- [Other](docs/15_other.md)
 
 ## Messages
 

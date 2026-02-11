@@ -21,27 +21,6 @@
   }
 }
 </pre></td></tr>
-<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
-{
-  "type": "system",
-  "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
-  "mcp_servers": [],
-  "model": "",
-  "permissionMode": "bypassPermissions",
-  "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
-  "agents": [],
-  "skills": [],
-  "plugins": [],
-  "uuid": "",
-  "fast_mode_state": ""
-}
-</pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttool_use">assistant(tool_use:TeamCreate)</a></td><td><pre lang="json">
 {
   "type": "assistant",
@@ -132,27 +111,6 @@
     "role": "user",
     "content": "delete the team"
   }
-}
-</pre></td></tr>
-<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
-{
-  "type": "system",
-  "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
-  "mcp_servers": [],
-  "model": "",
-  "permissionMode": "bypassPermissions",
-  "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
-  "agents": [],
-  "skills": [],
-  "plugins": [],
-  "uuid": "",
-  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttool_use">assistant(tool_use:TeamDelete)</a></td><td><pre lang="json">
@@ -247,27 +205,6 @@
   }
 }
 </pre></td></tr>
-<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
-{
-  "type": "system",
-  "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
-  "mcp_servers": [],
-  "model": "",
-  "permissionMode": "bypassPermissions",
-  "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
-  "agents": [],
-  "skills": [],
-  "plugins": [],
-  "uuid": "",
-  "fast_mode_state": ""
-}
-</pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttool_use">assistant(tool_use:SendMessage)</a></td><td><pre lang="json">
 {
   "type": "assistant",
@@ -358,27 +295,6 @@
     "role": "user",
     "content": "create team and spawn a teammate"
   }
-}
-</pre></td></tr>
-<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
-{
-  "type": "system",
-  "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
-  "mcp_servers": [],
-  "model": "",
-  "permissionMode": "bypassPermissions",
-  "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
-  "agents": [],
-  "skills": [],
-  "plugins": [],
-  "uuid": "",
-  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttool_use">assistant(tool_use:TeamCreate)</a></td><td><pre lang="json">
@@ -491,27 +407,6 @@
     "role": "user",
     "content": "create a team called proto-test-lifecycle"
   }
-}
-</pre></td></tr>
-<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
-{
-  "type": "system",
-  "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
-  "mcp_servers": [],
-  "model": "",
-  "permissionMode": "bypassPermissions",
-  "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
-  "agents": [],
-  "skills": [],
-  "plugins": [],
-  "uuid": "",
-  "fast_mode_state": ""
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttool_use">assistant(tool_use:TeamCreate)</a></td><td><pre lang="json">

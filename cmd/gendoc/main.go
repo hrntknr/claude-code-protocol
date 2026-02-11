@@ -804,12 +804,15 @@ func writeMessageSection(buf *strings.Builder, msgTypes []messageType) {
 // godocToMarkdown converts godoc-formatted text to markdown.
 // Explicit fenced code blocks (```json etc.) are passed through as-is,
 // with tab-indented content inside them having the tab prefix stripped.
+// JSON fenced blocks are pretty-printed via formatJSON.
 // Tab-indented lines outside fenced blocks are wrapped in auto-generated ``` blocks.
 func godocToMarkdown(doc string) string {
 	lines := strings.Split(doc, "\n")
 	var buf strings.Builder
 	inFencedBlock := false // inside explicit ``` block
-	inAutoBlock := false   // inside auto-generated ``` block
+	fencedLang := ""       // language tag of the current fenced block
+	var fencedLines []string
+	inAutoBlock := false // inside auto-generated ``` block
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
@@ -821,16 +824,34 @@ func godocToMarkdown(doc string) string {
 				buf.WriteString("```\n")
 				inAutoBlock = false
 			}
-			inFencedBlock = !inFencedBlock
-			buf.WriteString(trimmed + "\n")
+			if inFencedBlock {
+				// Closing fence: flush collected content.
+				content := strings.TrimSpace(strings.Join(fencedLines, "\n"))
+				if fencedLang == "json" && json.Valid([]byte(content)) {
+					buf.WriteString(formatJSON(content) + "\n")
+				} else {
+					for _, cl := range fencedLines {
+						buf.WriteString(cl + "\n")
+					}
+				}
+				inFencedBlock = false
+				fencedLines = nil
+				buf.WriteString("```\n")
+			} else {
+				// Opening fence: record language tag.
+				inFencedBlock = true
+				fencedLang = strings.TrimPrefix(trimmed, "```")
+				fencedLines = nil
+				buf.WriteString(trimmed + "\n")
+			}
 			continue
 		}
 
 		if inFencedBlock {
 			if isIndented {
-				buf.WriteString(strings.TrimPrefix(line, "\t") + "\n")
+				fencedLines = append(fencedLines, strings.TrimPrefix(line, "\t"))
 			} else {
-				buf.WriteString(line + "\n")
+				fencedLines = append(fencedLines, line)
 			}
 			continue
 		}
@@ -853,6 +874,10 @@ func godocToMarkdown(doc string) string {
 		buf.WriteString("```\n")
 	}
 	if inFencedBlock {
+		// Flush unclosed fenced block.
+		for _, cl := range fencedLines {
+			buf.WriteString(cl + "\n")
+		}
 		buf.WriteString("```\n")
 	}
 

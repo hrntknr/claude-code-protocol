@@ -23,10 +23,10 @@
 - [Agent Team](docs/11_agent_team.md)
 - [Control Request](docs/12_control_request.md)
 - [Cli Flags](docs/13_cli_flags.md)
-- [Error](docs/14_error.md)
-- [Other](docs/15_other.md)
-- [Cli Flags Advanced](docs/16_cli_flags_advanced.md)
-- [Permission Tool](docs/17_permission_tool.md)
+- [Cli Flags Advanced](docs/14_cli_flags_advanced.md)
+- [Permission Tool](docs/15_permission_tool.md)
+- [Error](docs/98_error.md)
+- [Other](docs/99_other.md)
 
 ## Messages
 

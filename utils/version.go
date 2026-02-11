@@ -1,17 +1,55 @@
 package utils
 
 import (
+	"encoding/json"
 	"os/exec"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 )
 
-// FieldMinVersion maps struct fields (StructName.FieldName) to the minimum CLI version
-// that includes them. Used by test helpers to conditionally include version-specific
-// fields in assertion patterns.
+// FieldMinVersion maps "StructName.json_key" to the minimum CLI version
+// that includes the field. Used by MustJSONVersioned to omit version-gated
+// fields when running against older CLIs.
 var FieldMinVersion = map[string]string{
-	"SystemInitMessage.FastModeState": "2.1.38",
+	"SystemInitMessage.fast_mode_state": "2.1.38",
+}
+
+// MustJSONVersioned marshals v to JSON and removes fields whose CLI version
+// requirement (per FieldMinVersion) is not met by the installed CLI.
+// Keys in FieldMinVersion use the format "StructName.json_key".
+func MustJSONVersioned(v any) string {
+	b, err := json.Marshal(v)
+	if err != nil {
+		panic("MustJSONVersioned: " + err.Error())
+	}
+
+	structName := reflect.TypeOf(v).Name()
+	cur := CLIVersion()
+
+	var omitKeys []string
+	for key, minVer := range FieldMinVersion {
+		sn, jsonKey, ok := strings.Cut(key, ".")
+		if !ok || sn != structName {
+			continue
+		}
+		if !CLIVersionAtLeast(cur, minVer) {
+			omitKeys = append(omitKeys, jsonKey)
+		}
+	}
+
+	if len(omitKeys) == 0 {
+		return string(b)
+	}
+
+	var raw map[string]json.RawMessage
+	json.Unmarshal(b, &raw)
+	for _, k := range omitKeys {
+		delete(raw, k)
+	}
+	b, _ = json.Marshal(raw)
+	return string(b)
 }
 
 var (
@@ -40,9 +78,9 @@ func CLIVersion() string {
 	return cliVersionStr
 }
 
-// CLIVersionAtLeast returns true if the installed CLI version is >= minVersion.
-func CLIVersionAtLeast(minVersion string) bool {
-	return compareVersions(CLIVersion(), minVersion) >= 0
+// CLIVersionAtLeast returns true if cur is >= minVersion.
+func CLIVersionAtLeast(cur, minVersion string) bool {
+	return compareVersions(cur, minVersion) >= 0
 }
 
 // compareVersions compares two semver strings (major.minor.patch).

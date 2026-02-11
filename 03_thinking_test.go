@@ -30,7 +30,7 @@ func TestThinkingResponse(t *testing.T) {
 	// with content[0].type="thinking". Then the text block follows as another
 	// assistant message. Result contains only the text.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -111,7 +111,7 @@ func TestThinkingWithToolUse(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "think and then run a command"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{

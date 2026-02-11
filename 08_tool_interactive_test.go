@@ -44,7 +44,7 @@ func TestToolUseAskUserQuestion(t *testing.T) {
 	// (content "Answer questions?"). The API then returns the final text.
 	// The result includes a permission_denials array listing the denied tool.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -158,7 +158,7 @@ func TestAskUserQuestionSuccess(t *testing.T) {
 	// Phase 1: Read until the CLI asks for permission via control_request.
 	output1 := s.ReadUntil("control_request")
 	utils.AssertOutput(t, output1,
-		utils.MustJSON(defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionDefault })),
+		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionDefault }),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -335,7 +335,7 @@ func TestAskUserQuestionDisallowed(t *testing.T) {
 	}
 
 	utils.AssertOutput(t, output,
-		utils.MustJSON(defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString })),
+		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString }),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -455,7 +455,7 @@ func TestAskUserQuestionMultipleDenials(t *testing.T) {
 	// user(tool_result, is_error:true) cycle. Both denials are recorded in
 	// the result's permission_denials array.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		// First AskUserQuestion cycle
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
@@ -627,7 +627,7 @@ func TestAskUserQuestionWithParallelTool(t *testing.T) {
 	// containing "Sibling tool call errored" (because a sibling tool errored).
 	// Only AskUserQuestion appears in permission_denials.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		// AskUserQuestion tool_use (emitted as its own assistant message)
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},

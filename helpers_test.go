@@ -5,17 +5,8 @@ import (
 	"github.com/hrntknr/claudecodeprotocol/utils"
 )
 
-// defaultInitPattern returns a SystemInitMessage assertion pattern
-// appropriate for the current CLI version. All version-specific fields
-// (tracked in utils.FieldMinVersion) are included only when the
-// installed CLI version is new enough.
-//
-// Override specific fields via functional options:
-//
-//	utils.MustJSON(defaultInitPattern(func(m *SystemInitMessage) {
-//	    m.PermissionMode = PermissionDefault
-//	}))
-func defaultInitPattern(opts ...func(*SystemInitMessage)) SystemInitMessage {
+// defaultInitPattern returns a SystemInitMessage JSON assertion pattern
+func defaultInitPattern(opts ...func(*SystemInitMessage)) string {
 	m := SystemInitMessage{
 		MessageBase:       MessageBase{Type: TypeSystem, Subtype: SubtypeInit},
 		CWD:               utils.AnyString,
@@ -37,5 +28,5 @@ func defaultInitPattern(opts ...func(*SystemInitMessage)) SystemInitMessage {
 	for _, o := range opts {
 		o(&m)
 	}
-	return m
+	return utils.MustJSONVersioned(m)
 }

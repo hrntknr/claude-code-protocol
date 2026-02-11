@@ -30,7 +30,7 @@ func TestToolUseEnterPlanMode(t *testing.T) {
 	// then a system status message with permissionMode:"plan", then the
 	// user tool_result with plan mode instructions, then the final text.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -133,7 +133,7 @@ func TestExitPlanModeSuccess(t *testing.T) {
 	// Phase 1: Read until the CLI asks for permission via control_request.
 	output1 := s.ReadUntil("control_request")
 	utils.AssertOutput(t, output1,
-		utils.MustJSON(defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionDefault })),
+		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionDefault }),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -261,7 +261,7 @@ func TestToolUseExitPlanMode(t *testing.T) {
 	// No system/status message is emitted (unlike EnterPlanMode).
 	output := s.Read()
 	utils.AssertOutput(t, output,
-		utils.MustJSON(defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString })),
+		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString }),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{

@@ -24,7 +24,7 @@ func TestSimpleTextResponse(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "say hello"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -78,7 +78,7 @@ func TestToolUseBash(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "run echo tool-use-test-output"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -137,7 +137,7 @@ func TestToolUseMultiStep(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "run two echo commands"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{

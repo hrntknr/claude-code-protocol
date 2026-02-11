@@ -33,7 +33,7 @@ func TestToolUseTodoWrite(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "create a todo list"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{

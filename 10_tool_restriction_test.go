@@ -42,7 +42,7 @@ func TestAllowedToolsRestriction(t *testing.T) {
 	// This means --allowedTools is overridden by --dangerously-skip-permissions.
 	output := s.Read()
 	utils.AssertOutput(t, output,
-		utils.MustJSON(defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString })),
+		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString }),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -167,7 +167,7 @@ func TestDisallowedToolsRestriction(t *testing.T) {
 	}
 
 	utils.AssertOutput(t, output,
-		utils.MustJSON(defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString })),
+		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString }),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{

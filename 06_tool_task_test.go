@@ -85,7 +85,7 @@ func TestToolUseTaskCreate(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "create a task"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -173,7 +173,7 @@ func TestToolUseTaskList(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "list all tasks"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -263,7 +263,7 @@ func TestToolUseTaskGet(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "get task 1"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -354,7 +354,7 @@ func TestToolUseTaskUpdate(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "mark task 1 as completed"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{

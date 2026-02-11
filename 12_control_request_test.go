@@ -30,7 +30,7 @@ func TestControlSetPermissionMode(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "hello"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(ResultSuccessMessage{
 			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
 			IsError:           false,
@@ -75,7 +75,7 @@ func TestControlSetPermissionMode(t *testing.T) {
 			},
 		}),
 		// New system/init with updated permission mode
-		utils.MustJSON(defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionPlan })),
+		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionPlan }),
 		utils.MustJSON(ResultSuccessMessage{
 			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
 			IsError:           false,
@@ -114,7 +114,7 @@ func TestControlSetModel(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "hello"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(ResultSuccessMessage{
 			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
 			IsError:           false,
@@ -158,7 +158,7 @@ func TestControlSetModel(t *testing.T) {
 			},
 		}),
 		// New system/init (model field is the resolved full name)
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(ResultSuccessMessage{
 			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
 			IsError:           false,

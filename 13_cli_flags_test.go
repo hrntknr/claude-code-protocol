@@ -31,7 +31,7 @@ func TestReplayUserMessages(t *testing.T) {
 	// with extra fields: session_id, parent_tool_use_id, uuid, and isReplay:true.
 	output := s.Read()
 	utils.AssertOutput(t, output,
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(UserReplayMessage{
 			MessageBase: MessageBase{Type: TypeUser},
 			Message:     UserTextBody{Role: RoleUser, Content: "replay this message"},
@@ -101,7 +101,7 @@ func TestIncludePartialMessages(t *testing.T) {
 	output := s.Read()
 
 	utils.AssertOutput(t, output,
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		// stream_event: message_start
 		utils.MustJSON(StreamEventMessage{
 			MessageBase: MessageBase{Type: TypeStreamEvent},
@@ -213,7 +213,7 @@ func TestMaxTurnsLimit(t *testing.T) {
 	// The tool_use and tool_result messages still appear before the result.
 	output := s.Read()
 	utils.AssertOutput(t, output,
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(ResultMaxTurnsMessage{
 			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeErrorMaxTurns},
 			IsError:           false,

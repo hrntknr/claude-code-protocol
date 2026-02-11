@@ -38,7 +38,7 @@ func TestToolUseRead(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "read the test file"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -100,7 +100,7 @@ func TestToolUseWrite(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "write a file"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -179,7 +179,7 @@ func TestToolUseEdit(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "edit the file"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -256,7 +256,7 @@ func TestToolUseGlob(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "find txt files"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -324,7 +324,7 @@ func TestToolUseGrep(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "search for target-pattern"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -400,7 +400,7 @@ func TestToolUseNotebookEdit(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "add a cell to the notebook"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -484,7 +484,7 @@ func TestLongToolChain(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "read, edit, and verify the file"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{

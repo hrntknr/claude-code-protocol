@@ -32,7 +32,7 @@ func TestToolError(t *testing.T) {
 	// The API receives the error as a tool_result with is_error=true,
 	// then returns a normal text response.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -90,7 +90,7 @@ func TestAPIError(t *testing.T) {
 	// subtype "error_during_execution" and an "errors" array containing error
 	// message strings (full stack traces). No assistant messages are emitted.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(ResultErrorMessage{
 			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeErrorDuringExecution},
 			IsError:           false,

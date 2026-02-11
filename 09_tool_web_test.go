@@ -50,7 +50,7 @@ func TestToolUseWebFetch(t *testing.T) {
 	// a user tool_result with is_error:true containing the SSL error.
 	// The API then returns the next response as final text.
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{
@@ -127,7 +127,7 @@ func TestToolUseWebSearch(t *testing.T) {
 	// not in US region). The protocol format is the same as other tool errors.
 	output := s.Read()
 	utils.AssertOutput(t, output,
-		utils.MustJSON(defaultInitPattern()),
+		defaultInitPattern(),
 		utils.MustJSON(AssistantMessage{
 			MessageBase: MessageBase{Type: TypeAssistant},
 			Message: AssistantBody{

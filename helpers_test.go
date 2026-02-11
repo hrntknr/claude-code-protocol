@@ -32,10 +32,7 @@ func defaultInitPattern(opts ...func(*SystemInitMessage)) SystemInitMessage {
 		Skills:            utils.AnyStringSlice,
 		Plugins:           utils.AnyStringSlice,
 		UUID:              utils.AnyString,
-	}
-	// Version-gated fields
-	if utils.CLIVersionAtLeast(utils.FieldMinVersion["SystemInitMessage.FastModeState"]) {
-		m.FastModeState = utils.AnyString
+		FastModeState:     utils.AnyString,
 	}
 	for _, o := range opts {
 		o(&m)

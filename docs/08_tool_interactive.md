@@ -19,6 +19,27 @@
   }
 }
 </pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
+{
+  "type": "system",
+  "subtype": "init",
+  "cwd": "",
+  "session_id": "",
+  "tools": [],
+  "mcp_servers": [],
+  "model": "",
+  "permissionMode": "bypassPermissions",
+  "slash_commands": [],
+  "apiKeySource": "",
+  "claude_code_version": "",
+  "output_style": "",
+  "agents": [],
+  "skills": [],
+  "plugins": [],
+  "uuid": "",
+  "fast_mode_state": "off"
+}
+</pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttool_use">assistant(tool_use:AskUserQuestion)</a></td><td><pre lang="json">
 {
   "type": "assistant",
@@ -116,6 +137,27 @@
     "role": "user",
     "content": "ask me a question"
   }
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
+{
+  "type": "system",
+  "subtype": "init",
+  "cwd": "",
+  "session_id": "",
+  "tools": [],
+  "mcp_servers": [],
+  "model": "",
+  "permissionMode": "default",
+  "slash_commands": [],
+  "apiKeySource": "",
+  "claude_code_version": "",
+  "output_style": "",
+  "agents": [],
+  "skills": [],
+  "plugins": [],
+  "uuid": "",
+  "fast_mode_state": "off"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttool_use">assistant(tool_use:AskUserQuestion)</a></td><td><pre lang="json">
@@ -256,6 +298,27 @@
   }
 }
 </pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
+{
+  "type": "system",
+  "subtype": "init",
+  "cwd": "",
+  "session_id": "",
+  "tools": [],
+  "mcp_servers": [],
+  "model": "",
+  "permissionMode": "",
+  "slash_commands": [],
+  "apiKeySource": "",
+  "claude_code_version": "",
+  "output_style": "",
+  "agents": [],
+  "skills": [],
+  "plugins": [],
+  "uuid": "",
+  "fast_mode_state": "off"
+}
+</pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttool_use">assistant(tool_use:AskUserQuestion)</a></td><td><pre lang="json">
 {
   "type": "assistant",
@@ -347,6 +410,27 @@
     "role": "user",
     "content": "ask me two questions"
   }
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
+{
+  "type": "system",
+  "subtype": "init",
+  "cwd": "",
+  "session_id": "",
+  "tools": [],
+  "mcp_servers": [],
+  "model": "",
+  "permissionMode": "bypassPermissions",
+  "slash_commands": [],
+  "apiKeySource": "",
+  "claude_code_version": "",
+  "output_style": "",
+  "agents": [],
+  "skills": [],
+  "plugins": [],
+  "uuid": "",
+  "fast_mode_state": "off"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttool_use">assistant(tool_use:AskUserQuestion)</a></td><td><pre lang="json">
@@ -492,6 +576,27 @@
     "role": "user",
     "content": "ask a question and run a command"
   }
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
+{
+  "type": "system",
+  "subtype": "init",
+  "cwd": "",
+  "session_id": "",
+  "tools": [],
+  "mcp_servers": [],
+  "model": "",
+  "permissionMode": "bypassPermissions",
+  "slash_commands": [],
+  "apiKeySource": "",
+  "claude_code_version": "",
+  "output_style": "",
+  "agents": [],
+  "skills": [],
+  "plugins": [],
+  "uuid": "",
+  "fast_mode_state": "off"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttool_use">assistant(tool_use:AskUserQuestion)</a></td><td><pre lang="json">

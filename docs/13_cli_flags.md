@@ -18,6 +18,27 @@
   }
 }
 </pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
+{
+  "type": "system",
+  "subtype": "init",
+  "cwd": "",
+  "session_id": "",
+  "tools": [],
+  "mcp_servers": [],
+  "model": "",
+  "permissionMode": "bypassPermissions",
+  "slash_commands": [],
+  "apiKeySource": "",
+  "claude_code_version": "",
+  "output_style": "",
+  "agents": [],
+  "skills": [],
+  "plugins": [],
+  "uuid": "",
+  "fast_mode_state": "off"
+}
+</pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#user">user</a></td><td><pre lang="json">
 {
   "type": "user",
@@ -80,6 +101,27 @@
     "role": "user",
     "content": "stream something"
   }
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
+{
+  "type": "system",
+  "subtype": "init",
+  "cwd": "",
+  "session_id": "",
+  "tools": [],
+  "mcp_servers": [],
+  "model": "",
+  "permissionMode": "bypassPermissions",
+  "slash_commands": [],
+  "apiKeySource": "",
+  "claude_code_version": "",
+  "output_style": "",
+  "agents": [],
+  "skills": [],
+  "plugins": [],
+  "uuid": "",
+  "fast_mode_state": "off"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#stream_event">stream_event</a></td><td><pre lang="json">
@@ -182,6 +224,27 @@
   }
 }
 </pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
+{
+  "type": "system",
+  "subtype": "init",
+  "cwd": "",
+  "session_id": "",
+  "tools": [],
+  "mcp_servers": [],
+  "model": "",
+  "permissionMode": "bypassPermissions",
+  "slash_commands": [],
+  "apiKeySource": "",
+  "claude_code_version": "",
+  "output_style": "",
+  "agents": [],
+  "skills": [],
+  "plugins": [],
+  "uuid": "",
+  "fast_mode_state": "off"
+}
+</pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resulterror_max_turns">result/error_max_turns</a></td><td><pre lang="json">
 {
   "type": "result",
@@ -212,6 +275,27 @@
     "role": "user",
     "content": "hello"
   }
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#systeminit">system/init</a></td><td><pre lang="json">
+{
+  "type": "system",
+  "subtype": "init",
+  "cwd": "",
+  "session_id": "",
+  "tools": [],
+  "mcp_servers": [],
+  "model": "",
+  "permissionMode": "bypassPermissions",
+  "slash_commands": [],
+  "apiKeySource": "",
+  "claude_code_version": "",
+  "output_style": "",
+  "agents": [],
+  "skills": [],
+  "plugins": [],
+  "uuid": "",
+  "fast_mode_state": "off"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">

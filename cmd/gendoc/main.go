@@ -398,7 +398,7 @@ func extractSourceTurns(fset *token.FileSet, fn *ast.FuncDecl) []sourceTurn {
 			return true
 		}
 		if isSendCall(call) && len(call.Args) == 1 {
-			if src, ok := extractMustJSONSource(fset, call.Args[0]); ok {
+			if src, ok := extractPatternSource(fset, call.Args[0]); ok {
 				pendingInputs = append(pendingInputs, src)
 			}
 			return true
@@ -406,7 +406,7 @@ func extractSourceTurns(fset *token.FileSet, fn *ast.FuncDecl) []sourceTurn {
 		if isAssertOutputCall(call) && len(call.Args) >= 3 {
 			var sources []string
 			for _, arg := range call.Args[2:] {
-				if src, ok := extractMustJSONSource(fset, arg); ok {
+				if src, ok := extractPatternSource(fset, arg); ok {
 					sources = append(sources, src)
 				}
 			}
@@ -443,21 +443,16 @@ func isAssertOutputCall(call *ast.CallExpr) bool {
 	return ident.Name == "utils" && sel.Sel.Name == "AssertOutput"
 }
 
-// extractMustJSONSource returns the Go source text of a utils.MustJSON(...) argument.
-func extractMustJSONSource(fset *token.FileSet, expr ast.Expr) (string, bool) {
-	outer, ok := expr.(*ast.CallExpr)
-	if !ok || len(outer.Args) != 1 {
+// extractPatternSource returns the Go source text of a call expression used as
+// an assertion pattern. It accepts both legacy utils.MustJSON(...) calls and
+// helper function calls like defaultInitPattern().
+func extractPatternSource(fset *token.FileSet, expr ast.Expr) (string, bool) {
+	_, ok := expr.(*ast.CallExpr)
+	if !ok {
 		return "", false
 	}
-	sel, ok := outer.Fun.(*ast.SelectorExpr)
-	if !ok || sel.Sel.Name != "MustJSON" {
-		return "", false
-	}
-	ident, ok := sel.X.(*ast.Ident)
-	if !ok || ident.Name != "utils" {
-		return "", false
-	}
-	return exprSource(fset, outer.Args[0]), true
+	src := exprSource(fset, expr)
+	return src, src != ""
 }
 
 // ---------------------------------------------------------------------------
@@ -536,7 +531,7 @@ func buildEvalSource(sources []string, extraDecls, helperFuncs string) string {
 	}
 	src.WriteString("func main() {\n")
 	for _, s := range sources {
-		src.WriteString("\tfmt.Println(utils.MustJSON(" + s + "))\n")
+		src.WriteString("\tfmt.Println(" + s + ")\n")
 	}
 	src.WriteString("}\n")
 	return src.String()

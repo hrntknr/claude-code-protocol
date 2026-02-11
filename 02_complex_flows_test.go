@@ -34,37 +34,16 @@ func TestTextAndToolUseInSameResponse(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Done. The output was: combined-test",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Done. The output was: combined-test",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Done. The output was: combined-test",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "Done. The output was: combined-test"
 		}),
 	)
 }
@@ -107,37 +86,16 @@ func TestParallelToolUse(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Both commands ran: parallel-one and parallel-two",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Both commands ran: parallel-one and parallel-two",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Both commands ran: parallel-one and parallel-two",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "Both commands ran: parallel-one and parallel-two"
 		}),
 	)
 }
@@ -162,37 +120,16 @@ func TestMultiTurnConversation(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "First answer.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "First answer.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "First answer.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "First answer."
 		}),
 	)
 
@@ -202,37 +139,16 @@ func TestMultiTurnConversation(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "second question"},
 	}))
 	utils.AssertOutput(t, s.Read(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Second answer.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Second answer.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Second answer.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "Second answer."
 		}),
 	)
 }
@@ -259,38 +175,18 @@ func TestMaxTokensStopReason(t *testing.T) {
 	// result with subtype "success" but is_error true.
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             utils.AnyString,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             utils.AnyString,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           true,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            utils.AnyString,
-			StopReason:        utils.AnyString,
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.IsError = true
+			m.Result = utils.AnyString
+			m.StopReason = utils.AnyString
 		}),
 	)
 }
@@ -315,55 +211,24 @@ func TestMultipleTextBlocks(t *testing.T) {
 	// message. The result contains only the LAST text block's content.
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "First paragraph.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "First paragraph.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Second paragraph.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Second paragraph.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Second paragraph.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "Second paragraph."
 		}),
 	)
 }

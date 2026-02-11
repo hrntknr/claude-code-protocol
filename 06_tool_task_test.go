@@ -86,71 +86,33 @@ func TestToolUseTaskCreate(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "TaskCreate",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "TaskCreate",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+			}}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Task created.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Task created.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Task created.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "Task created."
 		}),
 	)
 }
@@ -174,71 +136,33 @@ func TestToolUseTaskList(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "TaskList",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "TaskList",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+			}}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "No tasks found.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "No tasks found.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "No tasks found.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "No tasks found."
 		}),
 	)
 }
@@ -264,71 +188,33 @@ func TestToolUseTaskGet(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "TaskGet",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "TaskGet",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+			}}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Task details retrieved.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Task details retrieved.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Task details retrieved.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "Task details retrieved."
 		}),
 	)
 }
@@ -355,71 +241,33 @@ func TestToolUseTaskUpdate(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "TaskUpdate",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "TaskUpdate",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+			}}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Task updated.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Task updated.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Task updated.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "Task updated."
 		}),
 	)
 }

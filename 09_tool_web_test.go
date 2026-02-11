@@ -51,54 +51,26 @@ func TestToolUseWebFetch(t *testing.T) {
 	// The API then returns the next response as final text.
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "WebFetch",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "WebFetch",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-					IsError:          true,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+				IsError:          true,
+			}}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            utils.AnyString,
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = utils.AnyString
 		}),
 	)
 }
@@ -128,53 +100,25 @@ func TestToolUseWebSearch(t *testing.T) {
 	output := s.Read()
 	utils.AssertOutput(t, output,
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "WebSearch",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "WebSearch",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+			}}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            utils.AnyString,
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = utils.AnyString
 		}),
 	)
 }

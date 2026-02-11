@@ -25,32 +25,16 @@ func TestSimpleTextResponse(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content:  []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Hello!"}},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Hello!",
+				},
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Hello!",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "Hello!"
 		}),
 	)
 }
@@ -79,32 +63,16 @@ func TestToolUseBash(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content:  []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "The command printed: tool-use-test-output"}},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "The command printed: tool-use-test-output",
+				},
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "The command printed: tool-use-test-output",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "The command printed: tool-use-test-output"
 		}),
 	)
 }
@@ -138,32 +106,16 @@ func TestToolUseMultiStep(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content:  []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Both commands completed successfully."}},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Both commands completed successfully.",
+				},
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Both commands completed successfully.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "Both commands completed successfully."
 		}),
 	)
 }

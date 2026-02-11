@@ -31,56 +31,25 @@ func TestThinkingResponse(t *testing.T) {
 	// assistant message. Result contains only the text.
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ThinkingBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockThinking},
-						Thinking:         "Let me think about this step by step...",
-						Signature:        "",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ThinkingBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockThinking},
+					Thinking:         "Let me think about this step by step...",
+					Signature:        "",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "The answer is 42.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "The answer is 42.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "The answer is 42.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "The answer is 42."
 		}),
 	)
 }
@@ -112,37 +81,16 @@ func TestThinkingWithToolUse(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "After thinking and running the command: thinking-tool-test",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "After thinking and running the command: thinking-tool-test",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "After thinking and running the command: thinking-tool-test",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "After thinking and running the command: thinking-tool-test"
 		}),
 	)
 }

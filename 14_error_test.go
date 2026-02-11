@@ -33,37 +33,16 @@ func TestToolError(t *testing.T) {
 	// then returns a normal text response.
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "The file does not exist. Let me handle this error.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "The file does not exist. Let me handle this error.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "The file does not exist. Let me handle this error.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "The file does not exist. Let me handle this error."
 		}),
 	)
 }
@@ -91,19 +70,6 @@ func TestAPIError(t *testing.T) {
 	// message strings (full stack traces). No assistant messages are emitted.
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(ResultErrorMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeErrorDuringExecution},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
-			Errors:            utils.AnyStringSlice,
-		}),
+		defaultResultErrorPattern(func(m *ResultErrorMessage) { m.Errors = utils.AnyStringSlice }),
 	)
 }

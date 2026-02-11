@@ -45,76 +45,39 @@ func TestToolUseAskUserQuestion(t *testing.T) {
 	// The result includes a permission_denials array listing the denied tool.
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "AskUserQuestion",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "AskUserQuestion",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-					IsError:          true,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+				IsError:          true,
+			}}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "You chose Go. Let me proceed with Go.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "You chose Go. Let me proceed with Go.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:   MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:       false,
-			DurationMs:    utils.AnyNumber,
-			DurationApiMs: utils.AnyNumber,
-			NumTurns:      utils.AnyNumber,
-			Result:        "You chose Go. Let me proceed with Go.",
-			SessionID:     utils.AnyString,
-			TotalCostUSD:  utils.AnyNumber,
-			Usage:         utils.AnyMap,
-			ModelUsage:    utils.AnyMap,
-			PermissionDenials: []PermissionDenial{{
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "You chose Go. Let me proceed with Go."
+			m.PermissionDenials = []PermissionDenial{{
 				ToolName:  "AskUserQuestion",
 				ToolUseID: utils.AnyString,
 				ToolInput: utils.AnyMap,
-			}},
-			UUID: utils.AnyString,
+			}}
 		}),
 	)
 }
@@ -159,36 +122,24 @@ func TestAskUserQuestionSuccess(t *testing.T) {
 	output1 := s.ReadUntil("control_request")
 	utils.AssertOutput(t, output1,
 		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionDefault }),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "AskUserQuestion",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "AskUserQuestion",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
 		// stdout: CLI asks for permission
-		utils.MustJSON(ControlRequestMessage{
-			MessageBase: MessageBase{Type: TypeControlRequest},
-			RequestID:   utils.AnyString,
-			Request: ControlRequest{
+		defaultControlRequestPattern(func(m *ControlRequestMessage) {
+			m.Request = ControlRequest{
 				Subtype:   ControlCanUseTool,
 				ToolName:  "AskUserQuestion",
 				Input:     utils.AnyMap,
 				ToolUseID: utils.AnyString,
-			},
+			}
 		}),
 	)
 
@@ -225,51 +176,23 @@ func TestAskUserQuestionSuccess(t *testing.T) {
 	output2 := s.Read()
 	utils.AssertOutput(t, output2,
 		// tool_result with is_error absent (success)
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+			}}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "You chose Red.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "You chose Red.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "You chose Red.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "You chose Red."
 		}),
 	)
 }
@@ -336,72 +259,34 @@ func TestAskUserQuestionDisallowed(t *testing.T) {
 
 	utils.AssertOutput(t, output,
 		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString }),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "AskUserQuestion",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "AskUserQuestion",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-					IsError:          true,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+				IsError:          true,
+			}}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Understood, I will not ask questions.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Understood, I will not ask questions.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            utils.AnyString,
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = utils.AnyString
 		}),
 	)
 }
@@ -457,108 +342,55 @@ func TestAskUserQuestionMultipleDenials(t *testing.T) {
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
 		// First AskUserQuestion cycle
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "AskUserQuestion",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "AskUserQuestion",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-					IsError:          true,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+				IsError:          true,
+			}}
 		}),
 		// Second AskUserQuestion cycle
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "AskUserQuestion",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "AskUserQuestion",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-					IsError:          true,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+				IsError:          true,
+			}}
 		}),
 		// Final text response
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "I will proceed without asking.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "I will proceed without asking.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:   MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:       false,
-			DurationMs:    utils.AnyNumber,
-			DurationApiMs: utils.AnyNumber,
-			NumTurns:      utils.AnyNumber,
-			Result:        "I will proceed without asking.",
-			SessionID:     utils.AnyString,
-			TotalCostUSD:  utils.AnyNumber,
-			Usage:         utils.AnyMap,
-			ModelUsage:    utils.AnyMap,
-			PermissionDenials: []PermissionDenial{
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "I will proceed without asking."
+			m.PermissionDenials = []PermissionDenial{
 				{
 					ToolName:  "AskUserQuestion",
 					ToolUseID: utils.AnyString,
@@ -569,8 +401,7 @@ func TestAskUserQuestionMultipleDenials(t *testing.T) {
 					ToolUseID: utils.AnyString,
 					ToolInput: utils.AnyMap,
 				},
-			},
-			UUID: utils.AnyString,
+			}
 		}),
 	)
 }
@@ -578,6 +409,9 @@ func TestAskUserQuestionMultipleDenials(t *testing.T) {
 // AskUserQuestion and Bash in parallel: AskUserQuestion denied, Bash succeeds
 func TestAskUserQuestionWithParallelTool(t *testing.T) {
 	t.Parallel()
+	if !utils.CLIVersionAtLeast(utils.CLIVersion(), "2.1.38") {
+		t.Skip("parallel tool_use splitting behavior changed in 2.1.38")
+	}
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: Parallel tool_use — AskUserQuestion + Bash in one message
 		utils.MultiToolUseResponse(
@@ -629,115 +463,61 @@ func TestAskUserQuestionWithParallelTool(t *testing.T) {
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
 		// AskUserQuestion tool_use (emitted as its own assistant message)
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "AskUserQuestion",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "AskUserQuestion",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
 		// AskUserQuestion denied
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-					IsError:          true,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+				IsError:          true,
+			}}
 		}),
 		// Bash tool_use (emitted as a separate assistant message)
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "Bash",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "Bash",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
 		// Bash tool_result — also errored due to sibling failure
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-					IsError:          true,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+				IsError:          true,
+			}}
 		}),
 		// Final text
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Bash succeeded, question was denied.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Bash succeeded, question was denied.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:   MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:       false,
-			DurationMs:    utils.AnyNumber,
-			DurationApiMs: utils.AnyNumber,
-			NumTurns:      utils.AnyNumber,
-			Result:        utils.AnyString,
-			SessionID:     utils.AnyString,
-			TotalCostUSD:  utils.AnyNumber,
-			Usage:         utils.AnyMap,
-			ModelUsage:    utils.AnyMap,
-			PermissionDenials: []PermissionDenial{{
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = utils.AnyString
+			m.PermissionDenials = []PermissionDenial{{
 				ToolName:  "AskUserQuestion",
 				ToolUseID: utils.AnyString,
 				ToolInput: utils.AnyMap,
-			}},
-			UUID: utils.AnyString,
+			}}
 		}),
 	)
 }

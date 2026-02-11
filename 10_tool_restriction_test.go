@@ -43,71 +43,33 @@ func TestAllowedToolsRestriction(t *testing.T) {
 	output := s.Read()
 	utils.AssertOutput(t, output,
 		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString }),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "Write",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "Write",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+			}}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Write tool was denied.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Write tool was denied.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            utils.AnyString,
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = utils.AnyString
 		}),
 	)
 }
@@ -168,72 +130,34 @@ func TestDisallowedToolsRestriction(t *testing.T) {
 
 	utils.AssertOutput(t, output,
 		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString }),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "Write",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "Write",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-					IsError:          true,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+				IsError:          true,
+			}}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Write tool was denied.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Write tool was denied.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            utils.AnyString,
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = utils.AnyString
 		}),
 	)
 

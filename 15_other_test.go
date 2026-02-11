@@ -35,33 +35,15 @@ func TestStopSequence(t *testing.T) {
 		defaultInitPattern(),
 		// The assistant message has stop_reason:null and stop_sequence:null
 		// (not "stop_sequence" and "###" as returned by the stub API).
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content:  []IsContentBlock{TextBlock{ContentBlockBase: ContentBlockBase{Type: BlockText}, Text: "Hello"}},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Hello",
+				},
+			}
 		}),
 		// The result message also has stop_reason:null (StopReason omitted → zero value).
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Hello",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
-		}),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Hello" }),
 	)
 }

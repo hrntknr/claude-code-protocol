@@ -31,77 +31,36 @@ func TestToolUseEnterPlanMode(t *testing.T) {
 	// user tool_result with plan mode instructions, then the final text.
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "EnterPlanMode",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "EnterPlanMode",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(SystemStatusMessage{
-			MessageBase:    MessageBase{Type: TypeSystem, Subtype: SubtypeStatus},
-			PermissionMode: PermissionPlan,
-			UUID:           utils.AnyString,
-			SessionID:      utils.AnyString,
+		defaultSystemStatusPattern(func(m *SystemStatusMessage) {
+			m.PermissionMode = PermissionPlan
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+			}}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "I have entered plan mode. Let me explore the codebase.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "I have entered plan mode. Let me explore the codebase.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "I have entered plan mode. Let me explore the codebase.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "I have entered plan mode. Let me explore the codebase."
 		}),
 	)
 }
@@ -134,36 +93,24 @@ func TestExitPlanModeSuccess(t *testing.T) {
 	output1 := s.ReadUntil("control_request")
 	utils.AssertOutput(t, output1,
 		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionDefault }),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "ExitPlanMode",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "ExitPlanMode",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
 		// stdout: CLI asks for permission
-		utils.MustJSON(ControlRequestMessage{
-			MessageBase: MessageBase{Type: TypeControlRequest},
-			RequestID:   utils.AnyString,
-			Request: ControlRequest{
+		defaultControlRequestPattern(func(m *ControlRequestMessage) {
+			m.Request = ControlRequest{
 				Subtype:   ControlCanUseTool,
 				ToolName:  "ExitPlanMode",
 				Input:     utils.AnyMap,
 				ToolUseID: utils.AnyString,
-			},
+			}
 		}),
 	)
 
@@ -185,51 +132,23 @@ func TestExitPlanModeSuccess(t *testing.T) {
 	output2 := s.Read()
 	utils.AssertOutput(t, output2,
 		// tool_result with is_error absent (success)
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+			}}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Plan approved, proceeding.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Plan approved, proceeding.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Plan approved, proceeding.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "Plan approved, proceeding."
 		}),
 	)
 }
@@ -262,76 +181,39 @@ func TestToolUseExitPlanMode(t *testing.T) {
 	output := s.Read()
 	utils.AssertOutput(t, output,
 		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString }),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               utils.AnyString,
-						Name:             "ExitPlanMode",
-						Input:            utils.AnyMap,
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               utils.AnyString,
+					Name:             "ExitPlanMode",
+					Input:            utils.AnyMap,
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(UserToolResultMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message: UserToolResultBody{
-				Role: RoleUser,
-				Content: []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        utils.AnyString,
-					Content:          utils.AnyString,
-					IsError:          true,
-				}},
-			},
-			SessionID:     utils.AnyString,
-			UUID:          utils.AnyString,
-			ToolUseResult: utils.AnyString,
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        utils.AnyString,
+				Content:          utils.AnyString,
+				IsError:          true,
+			}}
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Plan approved, proceeding with implementation.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Plan approved, proceeding with implementation.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:   MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:       false,
-			DurationMs:    utils.AnyNumber,
-			DurationApiMs: utils.AnyNumber,
-			NumTurns:      utils.AnyNumber,
-			Result:        "Plan approved, proceeding with implementation.",
-			SessionID:     utils.AnyString,
-			TotalCostUSD:  utils.AnyNumber,
-			Usage:         utils.AnyMap,
-			ModelUsage:    utils.AnyMap,
-			PermissionDenials: []PermissionDenial{{
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.Result = "Plan approved, proceeding with implementation."
+			m.PermissionDenials = []PermissionDenial{{
 				ToolName:  "ExitPlanMode",
 				ToolUseID: utils.AnyString,
 				ToolInput: utils.AnyMap,
-			}},
-			UUID: utils.AnyString,
+			}}
 		}),
 	)
 }

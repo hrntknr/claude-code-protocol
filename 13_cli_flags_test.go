@@ -32,45 +32,18 @@ func TestReplayUserMessages(t *testing.T) {
 	output := s.Read()
 	utils.AssertOutput(t, output,
 		defaultInitPattern(),
-		utils.MustJSON(UserReplayMessage{
-			MessageBase: MessageBase{Type: TypeUser},
-			Message:     UserTextBody{Role: RoleUser, Content: "replay this message"},
-			SessionID:   utils.AnyString,
-			UUID:        utils.AnyString,
-			IsReplay:    true,
+		defaultUserReplayPattern(func(m *UserReplayMessage) {
+			m.Message.Content = "replay this message"
 		}),
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Echoed!",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Echoed!",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Echoed!",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
-		}),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Echoed!" }),
 	)
 }
 
@@ -103,80 +76,27 @@ func TestIncludePartialMessages(t *testing.T) {
 	utils.AssertOutput(t, output,
 		defaultInitPattern(),
 		// stream_event: message_start
-		utils.MustJSON(StreamEventMessage{
-			MessageBase: MessageBase{Type: TypeStreamEvent},
-			Event:       utils.AnyMap,
-			SessionID:   utils.AnyString,
-			UUID:        utils.AnyString,
-		}),
+		defaultStreamEventPattern(),
 		// stream_event: content_block_start
-		utils.MustJSON(StreamEventMessage{
-			MessageBase: MessageBase{Type: TypeStreamEvent},
-			Event:       utils.AnyMap,
-			SessionID:   utils.AnyString,
-			UUID:        utils.AnyString,
-		}),
+		defaultStreamEventPattern(),
 		// stream_event: content_block_delta
-		utils.MustJSON(StreamEventMessage{
-			MessageBase: MessageBase{Type: TypeStreamEvent},
-			Event:       utils.AnyMap,
-			SessionID:   utils.AnyString,
-			UUID:        utils.AnyString,
-		}),
+		defaultStreamEventPattern(),
 		// Final assistant message (complete text block)
-		utils.MustJSON(AssistantMessage{
-			MessageBase: MessageBase{Type: TypeAssistant},
-			Message: AssistantBody{
-				Content: []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Streamed response.",
-					},
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Streamed response.",
 				},
-				ID:       utils.AnyString,
-				Model:    utils.AnyString,
-				Role:     RoleAssistant,
-				BodyType: AssistantBodyTypeMessage,
-				Usage:    utils.AnyMap,
-			},
-			SessionID: utils.AnyString,
-			UUID:      utils.AnyString,
+			}
 		}),
 		// stream_event: content_block_stop
-		utils.MustJSON(StreamEventMessage{
-			MessageBase: MessageBase{Type: TypeStreamEvent},
-			Event:       utils.AnyMap,
-			SessionID:   utils.AnyString,
-			UUID:        utils.AnyString,
-		}),
+		defaultStreamEventPattern(),
 		// stream_event: message_delta (stop_reason)
-		utils.MustJSON(StreamEventMessage{
-			MessageBase: MessageBase{Type: TypeStreamEvent},
-			Event:       utils.AnyMap,
-			SessionID:   utils.AnyString,
-			UUID:        utils.AnyString,
-		}),
+		defaultStreamEventPattern(),
 		// stream_event: message_stop
-		utils.MustJSON(StreamEventMessage{
-			MessageBase: MessageBase{Type: TypeStreamEvent},
-			Event:       utils.AnyMap,
-			SessionID:   utils.AnyString,
-			UUID:        utils.AnyString,
-		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Streamed response.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
-		}),
+		defaultStreamEventPattern(),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Streamed response." }),
 	)
 	// Verify stream_event messages are present (9 total: init + 6 stream_events + assistant + result).
 	if len(output) <= 3 {
@@ -214,20 +134,7 @@ func TestMaxTurnsLimit(t *testing.T) {
 	output := s.Read()
 	utils.AssertOutput(t, output,
 		defaultInitPattern(),
-		utils.MustJSON(ResultMaxTurnsMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeErrorMaxTurns},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
-			Errors:            []string{},
-		}),
+		defaultResultMaxTurnsPattern(),
 	)
 }
 
@@ -358,20 +265,7 @@ func TestFastModeStateDefault(t *testing.T) {
 		defaultInitPattern(func(m *SystemInitMessage) {
 			m.FastModeState = FastModeOff
 		}),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Hello",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
-		}),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Hello" }),
 	)
 }
 

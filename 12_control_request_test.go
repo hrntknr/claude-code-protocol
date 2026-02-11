@@ -31,20 +31,7 @@ func TestControlSetPermissionMode(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Ready.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
-		}),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Ready." }),
 	)
 
 	// Send control_request to change permission mode
@@ -67,29 +54,10 @@ func TestControlSetPermissionMode(t *testing.T) {
 	// message normally. The result text matches the last response from the stub.
 	utils.AssertOutput(t, s.Read(),
 		// control_response with success
-		utils.MustJSON(ControlResponseMessage{
-			MessageBase: MessageBase{Type: TypeControlResponse},
-			Response: ControlResponseBody{
-				Subtype:   utils.AnyString,
-				RequestID: utils.AnyString,
-			},
-		}),
+		defaultControlResponsePattern(),
 		// New system/init with updated permission mode
 		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionPlan }),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            utils.AnyString,
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
-		}),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = utils.AnyString }),
 	)
 }
 
@@ -115,20 +83,7 @@ func TestControlSetModel(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            "Ready.",
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
-		}),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Ready." }),
 	)
 
 	// Send control_request to change model
@@ -150,28 +105,9 @@ func TestControlSetModel(t *testing.T) {
 	// new system/init with the updated model, then processes the user message.
 	utils.AssertOutput(t, s.Read(),
 		// control_response with success
-		utils.MustJSON(ControlResponseMessage{
-			MessageBase: MessageBase{Type: TypeControlResponse},
-			Response: ControlResponseBody{
-				Subtype:   utils.AnyString,
-				RequestID: utils.AnyString,
-			},
-		}),
+		defaultControlResponsePattern(),
 		// New system/init (model field is the resolved full name)
 		defaultInitPattern(),
-		utils.MustJSON(ResultSuccessMessage{
-			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
-			IsError:           false,
-			DurationMs:        utils.AnyNumber,
-			DurationApiMs:     utils.AnyNumber,
-			NumTurns:          utils.AnyNumber,
-			Result:            utils.AnyString,
-			SessionID:         utils.AnyString,
-			TotalCostUSD:      utils.AnyNumber,
-			Usage:             utils.AnyMap,
-			ModelUsage:        utils.AnyMap,
-			PermissionDenials: []PermissionDenial{},
-			UUID:              utils.AnyString,
-		}),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = utils.AnyString }),
 	)
 }

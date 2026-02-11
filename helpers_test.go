@@ -23,7 +23,7 @@ func defaultInitPattern(opts ...func(*SystemInitMessage)) string {
 		Skills:            utils.AnyStringSlice,
 		Plugins:           utils.AnyStringSlice,
 		UUID:              utils.AnyString,
-		FastModeState:     utils.AnyString,
+		FastModeState:     FastModeOff,
 	}
 	for _, o := range opts {
 		o(&m)

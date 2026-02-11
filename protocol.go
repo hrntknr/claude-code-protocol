@@ -62,6 +62,14 @@ const (
 	PermissionDelegate          PermissionMode = "delegate"
 )
 
+type FastModeState string
+
+const (
+	FastModeOff      FastModeState = "off"
+	FastModeOn       FastModeState = "on"
+	FastModeCooldown FastModeState = "cooldown"
+)
+
 type AssistantBodyType string
 
 const (
@@ -129,7 +137,7 @@ type SystemInitMessage struct {
 	Skills            []string       `json:"skills"`              // Skills list
 	Plugins           []string       `json:"plugins"`             // Plugins list
 	UUID              string         `json:"uuid"`                // Message UUID
-	FastModeState     string         `json:"fast_mode_state"`     // Fast mode state (e.g. "off")
+	FastModeState     FastModeState  `json:"fast_mode_state"`     // Fast mode state ("off", "on", "cooldown")
 }
 
 // # system/status

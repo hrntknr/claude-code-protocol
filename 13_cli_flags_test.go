@@ -334,6 +334,47 @@ func TestPermissionModeDefault(t *testing.T) {
 	}
 }
 
+// fast_mode_state defaults to "off" without authentication
+func TestFastModeStateDefault(t *testing.T) {
+	t.Parallel()
+	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
+		utils.TextResponse("Hello"),
+	}}
+	stub.Start()
+	defer stub.Close()
+
+	s := utils.NewSession(t, stub.URL())
+	defer s.Close()
+
+	s.Send(utils.MustJSON(UserTextMessage{
+		MessageBase: MessageBase{Type: TypeUser},
+		Message:     UserTextBody{Role: RoleUser, Content: "hello"},
+	}))
+	// Observed: Without OAuth authentication or a paid subscription,
+	// fast mode cannot be enabled. The fast_mode_state field in system/init
+	// is "off". Possible values are "off", "on", and "cooldown".
+	output := s.Read()
+	utils.AssertOutput(t, output,
+		defaultInitPattern(func(m *SystemInitMessage) {
+			m.FastModeState = FastModeOff
+		}),
+		utils.MustJSON(ResultSuccessMessage{
+			MessageBase:       MessageBase{Type: TypeResult, Subtype: SubtypeSuccess},
+			IsError:           false,
+			DurationMs:        utils.AnyNumber,
+			DurationApiMs:     utils.AnyNumber,
+			NumTurns:          utils.AnyNumber,
+			Result:            "Hello",
+			SessionID:         utils.AnyString,
+			TotalCostUSD:      utils.AnyNumber,
+			Usage:             utils.AnyMap,
+			ModelUsage:        utils.AnyMap,
+			PermissionDenials: []PermissionDenial{},
+			UUID:              utils.AnyString,
+		}),
+	)
+}
+
 // Model override via --model flag
 func TestModelOverride(t *testing.T) {
 	t.Parallel()

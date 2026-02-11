@@ -371,6 +371,22 @@ func MultiTextResponse(texts ...string) []SSEEvent {
 	return events
 }
 
+// StopSequenceTextResponse builds an SSE event sequence for a text response
+// that was stopped by a stop_sequence (stop_reason: "stop_sequence").
+func StopSequenceTextResponse(text, stopSequence string) []SSEEvent {
+	events := []SSEEvent{messageStartEvent()}
+	events = append(events, textBlockEvents(0, text)...)
+	events = append(events, SSEEvent{
+		Event: "message_delta",
+		Data: map[string]any{
+			"type":  "message_delta",
+			"delta": map[string]any{"stop_reason": "stop_sequence", "stop_sequence": stopSequence},
+			"usage": map[string]any{"output_tokens": 20},
+		},
+	}, messageStopEvent())
+	return events
+}
+
 // ErrorSSEResponse builds a single SSE error event (API-level error, not tool error).
 func ErrorSSEResponse(errorType, message string) []SSEEvent {
 	return []SSEEvent{

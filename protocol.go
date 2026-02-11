@@ -46,9 +46,12 @@ const (
 type ControlSubtype string
 
 const (
-	ControlCanUseTool        ControlSubtype = "can_use_tool"
-	ControlSetPermissionMode ControlSubtype = "set_permission_mode"
-	ControlSetModel          ControlSubtype = "set_model"
+	ControlCanUseTool           ControlSubtype = "can_use_tool"
+	ControlSetPermissionMode    ControlSubtype = "set_permission_mode"
+	ControlSetModel             ControlSubtype = "set_model"
+	ControlInterrupt            ControlSubtype = "interrupt"
+	ControlSetMaxThinkingTokens ControlSubtype = "set_max_thinking_tokens"
+	ControlInitialize           ControlSubtype = "initialize"
 )
 
 type PermissionMode string
@@ -397,12 +400,15 @@ type UserReplayMessage struct {
 // ControlRequest is the request payload inside a ControlRequestMessage.
 // The Subtype field determines which optional fields are populated.
 type ControlRequest struct {
-	Subtype   ControlSubtype `json:"subtype"`
-	ToolName  string         `json:"tool_name,omitempty"`   // can_use_tool
-	Input     map[string]any `json:"input,omitempty"`       // can_use_tool
-	ToolUseID string         `json:"tool_use_id,omitempty"` // can_use_tool
-	Mode      string         `json:"mode,omitempty"`        // set_permission_mode
-	Model     string         `json:"model,omitempty"`       // set_model
+	Subtype               ControlSubtype `json:"subtype"`
+	ToolName              string         `json:"tool_name,omitempty"`              // can_use_tool
+	Input                 map[string]any `json:"input,omitempty"`                  // can_use_tool
+	ToolUseID             string         `json:"tool_use_id,omitempty"`            // can_use_tool
+	PermissionSuggestions []string       `json:"permission_suggestions,omitempty"` // can_use_tool: suggested permission rules
+	DecisionReason        string         `json:"decision_reason,omitempty"`        // can_use_tool: why permission is required
+	BlockedPath           string         `json:"blocked_path,omitempty"`           // can_use_tool: path that triggered the permission check
+	Mode                  string         `json:"mode,omitempty"`                   // set_permission_mode
+	Model                 string         `json:"model,omitempty"`                  // set_model
 }
 
 // ControlResponseBody is the response payload inside a ControlResponseMessage.

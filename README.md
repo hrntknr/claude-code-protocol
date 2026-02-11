@@ -10,21 +10,6 @@
 
 ## Scenarios
 
-- [Basic](docs/01_basic.md)
-- [Complex Flows](docs/02_complex_flows.md)
-- [Thinking](docs/03_thinking.md)
-- [Tool File](docs/04_tool_file.md)
-- [Tool Todo](docs/05_tool_todo.md)
-- [Tool Task](docs/06_tool_task.md)
-- [Tool Plan](docs/07_tool_plan.md)
-- [Tool Interactive](docs/08_tool_interactive.md)
-- [Tool Web](docs/09_tool_web.md)
-- [Tool Restriction](docs/10_tool_restriction.md)
-- [Agent Team](docs/11_agent_team.md)
-- [Control Request](docs/12_control_request.md)
-- [Cli Flags](docs/13_cli_flags.md)
-- [Error](docs/14_error.md)
-- [Other](docs/15_other.md)
 
 ## Messages
 

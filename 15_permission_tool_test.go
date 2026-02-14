@@ -42,12 +42,12 @@ func TestBashPermissionApproved(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "Bash",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "rm -f /tmp/ccprotocol_perm_test_file", "description": "Remove test file"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		// stdout: CLI asks for permission to run Bash.
 		// The request includes permission_suggestions (suggested rules) and
 		// blocked_path (the filesystem path that triggered the check).
@@ -55,12 +55,12 @@ func TestBashPermissionApproved(t *testing.T) {
 			m.Request = ControlRequest{
 				Subtype:               ControlCanUseTool,
 				ToolName:              "Bash",
-				Input:                 utils.AnyMap,
-				ToolUseID:             utils.AnyString,
-				PermissionSuggestions: utils.AnyStringSlice,
-				BlockedPath:           utils.AnyString,
+				Input:                 map[string]any{"command": "rm -f /tmp/ccprotocol_perm_test_file", "description": "Remove test file"},
+				ToolUseID:             "toolu_stub_001",
+				PermissionSuggestions: []string{"allow:Bash(/tmp/*)"},
+				BlockedPath:           "/tmp/ccprotocol_perm_test_file",
 			}
-		}),
+		}).Ignore("request.input", "request.tool_use_id", "request.permission_suggestions", "request.blocked_path"),
 	)
 
 	// Phase 2: Send control_response on stdin to approve Bash.
@@ -98,7 +98,7 @@ func TestBashPermissionApproved(t *testing.T) {
 		// result: success with empty permission_denials
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Command executed successfully."
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -135,23 +135,23 @@ func TestBashPermissionDenied(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "Bash",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "rm -rf /", "description": "Dangerous command"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		// stdout: CLI asks for permission to run Bash
 		defaultControlRequestPattern(func(m *ControlRequestMessage) {
 			m.Request = ControlRequest{
 				Subtype:               ControlCanUseTool,
 				ToolName:              "Bash",
-				Input:                 utils.AnyMap,
-				ToolUseID:             utils.AnyString,
-				PermissionSuggestions: utils.AnyStringSlice,
-				DecisionReason:        utils.AnyString,
+				Input:                 map[string]any{"command": "rm -rf /", "description": "Dangerous command"},
+				ToolUseID:             "toolu_stub_001",
+				PermissionSuggestions: []string{"allow:Bash(rm)"},
+				DecisionReason:        "Command requires permissions",
 			}
-		}),
+		}).Ignore("request.input", "request.tool_use_id", "request.permission_suggestions", "request.decision_reason"),
 	)
 
 	// Phase 2: Send control_response on stdin to deny Bash.
@@ -175,11 +175,11 @@ func TestBashPermissionDenied(t *testing.T) {
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 				IsError:          true,
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
@@ -193,9 +193,9 @@ func TestBashPermissionDenied(t *testing.T) {
 			m.Result = "I understand, I will not run that command."
 			m.PermissionDenials = []PermissionDenial{{
 				ToolName:  "Bash",
-				ToolUseID: utils.AnyString,
-				ToolInput: utils.AnyMap,
+				ToolUseID: "toolu_stub_001",
+				ToolInput: map[string]any{"command": "rm -rf /", "description": "Dangerous command"},
 			}}
-		}),
+		}).Assert("result").Ignore("permission_denials.*.tool_use_id", "permission_denials.*.tool_input"),
 	)
 }

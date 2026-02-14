@@ -44,6 +44,6 @@ func TestStopSequence(t *testing.T) {
 			}
 		}),
 		// The result message also has stop_reason:null (StopReason omitted → zero value).
-		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Hello" }),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Hello" }).Assert("result"),
 	)
 }

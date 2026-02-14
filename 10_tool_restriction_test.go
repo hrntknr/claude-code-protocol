@@ -42,24 +42,24 @@ func TestAllowedToolsRestriction(t *testing.T) {
 	// This means --allowedTools is overridden by --dangerously-skip-permissions.
 	output := s.Read()
 	utils.AssertOutput(t, output,
-		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString }),
+		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionBypassPermissions }).Ignore("permissionMode"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "Write",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
@@ -68,9 +68,7 @@ func TestAllowedToolsRestriction(t *testing.T) {
 				},
 			}
 		}),
-		defaultResultPattern(func(m *ResultSuccessMessage) {
-			m.Result = utils.AnyString
-		}),
+		defaultResultPattern(),
 	)
 }
 
@@ -129,25 +127,25 @@ func TestDisallowedToolsRestriction(t *testing.T) {
 	}
 
 	utils.AssertOutput(t, output,
-		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString }),
+		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionBypassPermissions }).Ignore("permissionMode"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "Write",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 				IsError:          true,
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
@@ -156,9 +154,7 @@ func TestDisallowedToolsRestriction(t *testing.T) {
 				},
 			}
 		}),
-		defaultResultPattern(func(m *ResultSuccessMessage) {
-			m.Result = utils.AnyString
-		}),
+		defaultResultPattern(),
 	)
 
 	// Verify the file was NOT created.

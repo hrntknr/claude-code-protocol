@@ -55,23 +55,21 @@ func TestToolUseWebFetch(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "WebFetch",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 				IsError:          true,
 			}}
-		}),
-		defaultResultPattern(func(m *ResultSuccessMessage) {
-			m.Result = utils.AnyString
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
+		defaultResultPattern(),
 	)
 }
 
@@ -104,21 +102,19 @@ func TestToolUseWebSearch(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "WebSearch",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 			}}
-		}),
-		defaultResultPattern(func(m *ResultSuccessMessage) {
-			m.Result = utils.AnyString
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
+		defaultResultPattern(),
 	)
 }

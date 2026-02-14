@@ -35,7 +35,7 @@ func TestSimpleTextResponse(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Hello!"
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -73,7 +73,7 @@ func TestToolUseBash(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "The command printed: tool-use-test-output"
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -116,6 +116,6 @@ func TestToolUseMultiStep(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Both commands completed successfully."
-		}),
+		}).Assert("result"),
 	)
 }

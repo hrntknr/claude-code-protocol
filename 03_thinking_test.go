@@ -50,7 +50,7 @@ func TestThinkingResponse(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "The answer is 42."
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -91,6 +91,6 @@ func TestThinkingWithToolUse(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "After thinking and running the command: thinking-tool-test"
-		}),
+		}).Assert("result"),
 	)
 }

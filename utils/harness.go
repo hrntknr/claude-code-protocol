@@ -272,18 +272,17 @@ func MustJSON(v any) string {
 }
 
 // AssertOutput verifies that the output contains messages matching each expected
-// pattern in order. Each pattern is a JSON string produced by MustJSON.
-// The comparison is exact: all fields and array elements must match.
+// pattern in order. Each pattern is a Pattern with a JSON string and ignore paths.
+// The comparison checks all fields except those at ignored paths.
 // Messages not matching any pattern are skipped.
-// Any matcher sentinels are matched at the type level.
 // Extra keys in actual that are not in the pattern are allowed if their value is null.
-func AssertOutput(t *testing.T, output []json.RawMessage, expectedPatterns ...string) {
+func AssertOutput(t *testing.T, output []json.RawMessage, expectedPatterns ...Pattern) {
 	t.Helper()
 
 	pos := 0
 	for i, pattern := range expectedPatterns {
 		var expect any
-		if err := json.Unmarshal([]byte(pattern), &expect); err != nil {
+		if err := json.Unmarshal([]byte(pattern.json), &expect); err != nil {
 			t.Fatalf("invalid expected pattern [%d]: %v", i, err)
 		}
 
@@ -294,57 +293,50 @@ func AssertOutput(t *testing.T, output []json.RawMessage, expectedPatterns ...st
 			if err := json.Unmarshal(output[pos], &actual); err != nil {
 				continue
 			}
-			if jsonExact(actual, expect) {
+			if jsonMatch(actual, expect, pattern.ignorePaths, "") {
 				pos++
 				found = true
 				break
 			}
 		}
 		if !found {
-			t.Errorf("expected[%d] not found in output[%d:]:\n  pattern: %s", i, startPos, pattern)
+			t.Errorf("expected[%d] not found in output[%d:]:\n  pattern: %s", i, startPos, pattern.json)
 		}
 	}
 }
 
-// jsonExact returns true if actual matches expect.
-// All keys in expect must exist in actual with matching values.
-// Extra keys in actual are allowed only if their value is null (nil).
-// All elements in arrays must match (same length).
-//
-// Sentinel value detection:
-//   - string "<any>"          → matches any value (regardless of type)
-//   - float64 -1              → matches any float64
-//   - map with "<any>" key    → matches any map
-//   - array ["<any>"]         → matches any array
-func jsonExact(actual, expect any) bool {
-	// String sentinel: "<any>" matches any value regardless of type.
-	if s, ok := expect.(string); ok && s == "<any>" {
+// jsonMatch returns true if actual matches expect.
+// All keys in expect must exist in actual with matching values, unless the
+// key's path is in the ignore set. Extra keys in actual are allowed only if
+// their value is null (nil). Array lengths must match.
+// Paths are tracked as dot-separated strings; array indices use numeric segments.
+func jsonMatch(actual, expect any, ignorePaths map[string]bool, path string) bool {
+	if path != "" && isIgnored(ignorePaths, path) {
 		return true
 	}
 
 	switch e := expect.(type) {
 	case map[string]any:
-		// Map sentinel: {"<any>": true} matches any map.
-		if _, ok := e["<any>"]; ok && len(e) == 1 {
-			_, ok := actual.(map[string]any)
-			return ok
-		}
-		// Normal map comparison.
 		a, ok := actual.(map[string]any)
 		if !ok {
 			return false
 		}
-		// All keys in expect must exist in actual with matching values.
 		for k, ev := range e {
+			childPath := k
+			if path != "" {
+				childPath = path + "." + k
+			}
 			av, ok := a[k]
 			if !ok {
+				if isIgnored(ignorePaths, childPath) {
+					continue
+				}
 				return false
 			}
-			if !jsonExact(av, ev) {
+			if !jsonMatch(av, ev, ignorePaths, childPath) {
 				return false
 			}
 		}
-		// Extra keys in actual are allowed only if their value is null.
 		for k, av := range a {
 			if _, ok := e[k]; !ok {
 				if av != nil {
@@ -354,14 +346,6 @@ func jsonExact(actual, expect any) bool {
 		}
 		return true
 	case []any:
-		// Array sentinel: ["<any>"] matches any array.
-		if len(e) == 1 {
-			if s, ok := e[0].(string); ok && s == "<any>" {
-				_, ok := actual.([]any)
-				return ok
-			}
-		}
-		// Normal exact array comparison.
 		a, ok := actual.([]any)
 		if !ok {
 			return false
@@ -370,17 +354,16 @@ func jsonExact(actual, expect any) bool {
 			return false
 		}
 		for i, ev := range e {
-			if !jsonExact(a[i], ev) {
+			childPath := fmt.Sprintf("%d", i)
+			if path != "" {
+				childPath = path + "." + childPath
+			}
+			if !jsonMatch(a[i], ev, ignorePaths, childPath) {
 				return false
 			}
 		}
 		return true
 	case float64:
-		// Number sentinel: -1 matches any number.
-		if e == -1 {
-			_, ok := actual.(float64)
-			return ok
-		}
 		a, ok := actual.(float64)
 		return ok && a == e
 	default:

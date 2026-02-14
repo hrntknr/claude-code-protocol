@@ -31,7 +31,7 @@ func TestControlSetPermissionMode(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Ready." }),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Ready." }).Assert("result"),
 	)
 
 	// Send control_request to change permission mode
@@ -57,12 +57,12 @@ func TestControlSetPermissionMode(t *testing.T) {
 		// CLI >= 2.1.41 includes a nested "response" field with the new mode.
 		defaultControlResponsePattern(func(m *ControlResponseMessage) {
 			if utils.CLIVersionAtLeast(utils.CLIVersion(), "2.1.41") {
-				m.Response.Response = utils.AnyString
+				m.Response.Response = map[string]any{"mode": "plan"}
 			}
-		}),
+		}).Ignore("response.response"),
 		// New system/init with updated permission mode
 		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionPlan }),
-		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = utils.AnyString }),
+		defaultResultPattern(),
 	)
 }
 
@@ -88,7 +88,7 @@ func TestControlSetModel(t *testing.T) {
 	}))
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Ready." }),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Ready." }).Assert("result"),
 	)
 
 	// Send control_request to change model
@@ -113,6 +113,6 @@ func TestControlSetModel(t *testing.T) {
 		defaultControlResponsePattern(),
 		// New system/init (model field is the resolved full name)
 		defaultInitPattern(),
-		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = utils.AnyString }),
+		defaultResultPattern(),
 	)
 }

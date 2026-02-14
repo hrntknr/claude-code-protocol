@@ -44,7 +44,7 @@ func TestTextAndToolUseInSameResponse(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Done. The output was: combined-test"
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -96,7 +96,7 @@ func TestParallelToolUse(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Both commands ran: parallel-one and parallel-two"
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -130,7 +130,7 @@ func TestMultiTurnConversation(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "First answer."
-		}),
+		}).Assert("result"),
 	)
 
 	// Turn 2
@@ -149,7 +149,7 @@ func TestMultiTurnConversation(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Second answer."
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -179,15 +179,14 @@ func TestMaxTokensStopReason(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockText},
-					Text:             utils.AnyString,
+					Text:             "This response was truncated because it hit the max",
 				},
 			}
-		}),
+		}).Ignore("message.content.*.text"),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.IsError = true
-			m.Result = utils.AnyString
-			m.StopReason = utils.AnyString
-		}),
+			m.StopReason = "end_turn"
+		}).Ignore("stop_reason"),
 	)
 }
 
@@ -229,6 +228,6 @@ func TestMultipleTextBlocks(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Second paragraph."
-		}),
+		}).Assert("result"),
 	)
 }

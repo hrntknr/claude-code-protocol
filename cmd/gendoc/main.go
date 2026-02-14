@@ -333,7 +333,7 @@ func parseScenarios(root, filename string) []scenario {
 				inputs = append(inputs, assertPattern{
 					label:   label,
 					heading: heading,
-					json:    simplifyJSON(rawJSON),
+					json:    rawJSON,
 				})
 				idx++
 			}
@@ -345,7 +345,7 @@ func parseScenarios(root, filename string) []scenario {
 				outputs = append(outputs, assertPattern{
 					label:   label,
 					heading: heading,
-					json:    simplifyJSON(rawJSON),
+					json:    rawJSON,
 				})
 				idx++
 			}
@@ -482,7 +482,7 @@ func labelFromJSON(jsonStr string) (label, heading string) {
 			if block, ok := content[0].(map[string]any); ok {
 				if blockType, ok := block["type"].(string); ok {
 					detail := blockType
-					if name, _ := block["name"].(string); name != "" && name != "<any>" {
+					if name, _ := block["name"].(string); name != "" {
 						detail += ":" + name
 					}
 					label += "(" + detail + ")"
@@ -643,10 +643,6 @@ func evalExpressions(root string, sources []string) []string {
 	return lines
 }
 
-// ---------------------------------------------------------------------------
-// JSON simplification (sentinel -> empty value)
-// ---------------------------------------------------------------------------
-
 // formatJSON pretty-prints a compact JSON string with 2-space indentation,
 // preserving the original key order. It scans raw bytes directly instead of
 // unmarshal/marshal (which would sort keys).
@@ -710,20 +706,6 @@ func formatJSON(src string) string {
 		}
 	}
 	return buf.String()
-}
-
-// simplifyJSON replaces sentinel values in a compact JSON string with empty values.
-// Input is always compact JSON from json.Marshal, so string replacement preserves key order.
-// json.Marshal escapes <> to \u003c/\u003e, so sentinels use the escaped form.
-// Order matters: composite sentinels must be replaced before the string sentinel.
-func simplifyJSON(jsonStr string) string {
-	s := jsonStr
-	s = strings.ReplaceAll(s, `{"\u003cany\u003e":true}`, `{}`)
-	s = strings.ReplaceAll(s, `["\u003cany\u003e"]`, `[]`)
-	s = strings.ReplaceAll(s, `"\u003cany\u003e"`, `""`)
-	s = strings.ReplaceAll(s, `:-1,`, `:0,`)
-	s = strings.ReplaceAll(s, `:-1}`, `:0}`)
-	return s
 }
 
 // ---------------------------------------------------------------------------

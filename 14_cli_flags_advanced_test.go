@@ -33,7 +33,7 @@ func TestSystemPrompt(t *testing.T) {
 		defaultInitPattern(),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Hello from custom system prompt."
-		}),
+		}).Assert("result"),
 	)
 
 	// Verify the API request contains the custom system prompt
@@ -81,7 +81,7 @@ func TestAppendSystemPrompt(t *testing.T) {
 		defaultInitPattern(),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Hello with appended prompt."
-		}),
+		}).Assert("result"),
 	)
 
 	// Verify the API request contains the appended marker
@@ -129,10 +129,10 @@ func TestSessionID(t *testing.T) {
 	utils.AssertOutput(t, output,
 		defaultInitPattern(func(m *SystemInitMessage) {
 			m.SessionID = sessionID
-		}),
+		}).Assert("session_id"),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Hello with custom session."
 			m.SessionID = sessionID
-		}),
+		}).Assert("result", "session_id"),
 	)
 }

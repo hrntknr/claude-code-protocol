@@ -90,19 +90,19 @@ func TestToolUseTaskCreate(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "TaskCreate",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
@@ -113,7 +113,7 @@ func TestToolUseTaskCreate(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Task created."
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -140,19 +140,19 @@ func TestToolUseTaskList(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "TaskList",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
@@ -163,7 +163,7 @@ func TestToolUseTaskList(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "No tasks found."
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -192,19 +192,19 @@ func TestToolUseTaskGet(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "TaskGet",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
@@ -215,7 +215,7 @@ func TestToolUseTaskGet(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Task details retrieved."
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -245,19 +245,19 @@ func TestToolUseTaskUpdate(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "TaskUpdate",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
@@ -268,6 +268,6 @@ func TestToolUseTaskUpdate(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Task updated."
-		}),
+		}).Assert("result"),
 	)
 }

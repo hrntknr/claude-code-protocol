@@ -35,22 +35,22 @@ func TestToolUseEnterPlanMode(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "EnterPlanMode",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultSystemStatusPattern(func(m *SystemStatusMessage) {
 			m.PermissionMode = PermissionPlan
 		}),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
@@ -61,7 +61,7 @@ func TestToolUseEnterPlanMode(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "I have entered plan mode. Let me explore the codebase."
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -97,21 +97,21 @@ func TestExitPlanModeSuccess(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "ExitPlanMode",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		// stdout: CLI asks for permission
 		defaultControlRequestPattern(func(m *ControlRequestMessage) {
 			m.Request = ControlRequest{
 				Subtype:   ControlCanUseTool,
 				ToolName:  "ExitPlanMode",
-				Input:     utils.AnyMap,
-				ToolUseID: utils.AnyString,
+				Input:     map[string]any{"command": "echo hello", "description": "Example"},
+				ToolUseID: "toolu_stub_001",
 			}
-		}),
+		}).Ignore("request.input", "request.tool_use_id"),
 	)
 
 	// Phase 2: Send control_response on stdin to approve ExitPlanMode.
@@ -135,10 +135,10 @@ func TestExitPlanModeSuccess(t *testing.T) {
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
@@ -149,7 +149,7 @@ func TestExitPlanModeSuccess(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Plan approved, proceeding."
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -180,25 +180,25 @@ func TestToolUseExitPlanMode(t *testing.T) {
 	// No system/status message is emitted (unlike EnterPlanMode).
 	output := s.Read()
 	utils.AssertOutput(t, output,
-		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString }),
+		defaultInitPattern().Ignore("permissionMode"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "ExitPlanMode",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 				IsError:          true,
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
@@ -211,9 +211,9 @@ func TestToolUseExitPlanMode(t *testing.T) {
 			m.Result = "Plan approved, proceeding with implementation."
 			m.PermissionDenials = []PermissionDenial{{
 				ToolName:  "ExitPlanMode",
-				ToolUseID: utils.AnyString,
-				ToolInput: utils.AnyMap,
+				ToolUseID: "toolu_stub_001",
+				ToolInput: map[string]any{"key": "value"},
 			}}
-		}),
+		}).Assert("result").Ignore("permission_denials.*.tool_use_id", "permission_denials.*.tool_input"),
 	)
 }

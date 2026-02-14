@@ -43,7 +43,7 @@ func TestToolError(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "The file does not exist. Let me handle this error."
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -70,6 +70,8 @@ func TestAPIError(t *testing.T) {
 	// message strings (full stack traces). No assistant messages are emitted.
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
-		defaultResultErrorPattern(func(m *ResultErrorMessage) { m.Errors = utils.AnyStringSlice }),
+		defaultResultErrorPattern(func(m *ResultErrorMessage) {
+			m.Errors = []string{"API error: Overloaded"}
+		}).Ignore("errors"),
 	)
 }

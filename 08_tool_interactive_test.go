@@ -49,20 +49,20 @@ func TestToolUseAskUserQuestion(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "AskUserQuestion",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 				IsError:          true,
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
@@ -75,10 +75,10 @@ func TestToolUseAskUserQuestion(t *testing.T) {
 			m.Result = "You chose Go. Let me proceed with Go."
 			m.PermissionDenials = []PermissionDenial{{
 				ToolName:  "AskUserQuestion",
-				ToolUseID: utils.AnyString,
-				ToolInput: utils.AnyMap,
+				ToolUseID: "toolu_stub_001",
+				ToolInput: map[string]any{"key": "value"},
 			}}
-		}),
+		}).Assert("result").Ignore("permission_denials.*.tool_use_id", "permission_denials.*.tool_input"),
 	)
 }
 
@@ -126,21 +126,21 @@ func TestAskUserQuestionSuccess(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "AskUserQuestion",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		// stdout: CLI asks for permission
 		defaultControlRequestPattern(func(m *ControlRequestMessage) {
 			m.Request = ControlRequest{
 				Subtype:   ControlCanUseTool,
 				ToolName:  "AskUserQuestion",
-				Input:     utils.AnyMap,
-				ToolUseID: utils.AnyString,
+				Input:     map[string]any{"command": "echo hello", "description": "Example"},
+				ToolUseID: "toolu_stub_001",
 			}
-		}),
+		}).Ignore("request.input", "request.tool_use_id"),
 	)
 
 	// Phase 2: Send control_response on stdin with user's answers.
@@ -179,10 +179,10 @@ func TestAskUserQuestionSuccess(t *testing.T) {
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
@@ -193,7 +193,7 @@ func TestAskUserQuestionSuccess(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "You chose Red."
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -258,25 +258,25 @@ func TestAskUserQuestionDisallowed(t *testing.T) {
 	}
 
 	utils.AssertOutput(t, output,
-		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = utils.AnyString }),
+		defaultInitPattern().Ignore("permissionMode"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "AskUserQuestion",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 				IsError:          true,
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				TextBlock{
@@ -285,9 +285,7 @@ func TestAskUserQuestionDisallowed(t *testing.T) {
 				},
 			}
 		}),
-		defaultResultPattern(func(m *ResultSuccessMessage) {
-			m.Result = utils.AnyString
-		}),
+		defaultResultPattern(),
 	)
 }
 
@@ -346,39 +344,39 @@ func TestAskUserQuestionMultipleDenials(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "AskUserQuestion",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 				IsError:          true,
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		// Second AskUserQuestion cycle
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "AskUserQuestion",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 				IsError:          true,
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		// Final text response
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
@@ -393,16 +391,16 @@ func TestAskUserQuestionMultipleDenials(t *testing.T) {
 			m.PermissionDenials = []PermissionDenial{
 				{
 					ToolName:  "AskUserQuestion",
-					ToolUseID: utils.AnyString,
-					ToolInput: utils.AnyMap,
+					ToolUseID: "toolu_stub_001",
+					ToolInput: map[string]any{"key": "value"},
 				},
 				{
 					ToolName:  "AskUserQuestion",
-					ToolUseID: utils.AnyString,
-					ToolInput: utils.AnyMap,
+					ToolUseID: "toolu_stub_001",
+					ToolInput: map[string]any{"key": "value"},
 				},
 			}
-		}),
+		}).Assert("result").Ignore("permission_denials.*.tool_use_id", "permission_denials.*.tool_input"),
 	)
 }
 
@@ -467,41 +465,41 @@ func TestAskUserQuestionWithParallelTool(t *testing.T) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "AskUserQuestion",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		// AskUserQuestion denied
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 				IsError:          true,
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		// Bash tool_use (emitted as a separate assistant message)
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
 					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-					ID:               utils.AnyString,
+					ID:               "toolu_stub_001",
 					Name:             "Bash",
-					Input:            utils.AnyMap,
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
 				},
 			}
-		}),
+		}).Ignore("message.content.*.id", "message.content.*.input"),
 		// Bash tool_result — also errored due to sibling failure
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        utils.AnyString,
-				Content:          utils.AnyString,
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
 				IsError:          true,
 			}}
-		}),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		// Final text
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
@@ -512,12 +510,11 @@ func TestAskUserQuestionWithParallelTool(t *testing.T) {
 			}
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
-			m.Result = utils.AnyString
 			m.PermissionDenials = []PermissionDenial{{
 				ToolName:  "AskUserQuestion",
-				ToolUseID: utils.AnyString,
-				ToolInput: utils.AnyMap,
+				ToolUseID: "toolu_stub_001",
+				ToolInput: map[string]any{"key": "value"},
 			}}
-		}),
+		}).Ignore("permission_denials.*.tool_use_id", "permission_denials.*.tool_input"),
 	)
 }

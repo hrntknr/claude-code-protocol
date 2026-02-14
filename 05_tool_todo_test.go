@@ -44,6 +44,6 @@ func TestToolUseTodoWrite(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Created a todo list with 2 items."
-		}),
+		}).Assert("result"),
 	)
 }

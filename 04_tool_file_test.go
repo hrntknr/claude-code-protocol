@@ -49,7 +49,7 @@ func TestToolUseRead(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "The file contains: file-content-for-read-test"
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -90,7 +90,7 @@ func TestToolUseWrite(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "File created successfully."
-		}),
+		}).Assert("result"),
 	)
 
 	// Verify the file was actually written to disk.
@@ -148,7 +148,7 @@ func TestToolUseEdit(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "File edited successfully."
-		}),
+		}).Assert("result"),
 	)
 
 	// Verify the file was actually modified.
@@ -204,7 +204,7 @@ func TestToolUseGlob(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Found 2 text files."
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -251,7 +251,7 @@ func TestToolUseGrep(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Found the pattern in searchable.txt."
-		}),
+		}).Assert("result"),
 	)
 }
 
@@ -306,7 +306,7 @@ func TestToolUseNotebookEdit(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Inserted a new cell into the notebook."
-		}),
+		}).Assert("result"),
 	)
 
 	// Verify the notebook was modified.
@@ -369,7 +369,7 @@ func TestLongToolChain(t *testing.T) {
 		}),
 		defaultResultPattern(func(m *ResultSuccessMessage) {
 			m.Result = "Chain complete: read, edited, and verified."
-		}),
+		}).Assert("result"),
 	)
 
 	// Verify the file was actually modified through the chain.

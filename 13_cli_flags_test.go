@@ -43,7 +43,7 @@ func TestReplayUserMessages(t *testing.T) {
 				},
 			}
 		}),
-		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Echoed!" }),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Echoed!" }).Assert("result"),
 	)
 }
 
@@ -96,7 +96,7 @@ func TestIncludePartialMessages(t *testing.T) {
 		defaultStreamEventPattern(),
 		// stream_event: message_stop
 		defaultStreamEventPattern(),
-		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Streamed response." }),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Streamed response." }).Assert("result"),
 	)
 	// Verify stream_event messages are present (9 total: init + 6 stream_events + assistant + result).
 	if len(output) <= 3 {
@@ -265,7 +265,7 @@ func TestFastModeStateDefault(t *testing.T) {
 		defaultInitPattern(func(m *SystemInitMessage) {
 			m.FastModeState = FastModeOff
 		}),
-		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Hello" }),
+		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = "Hello" }).Assert("result"),
 	)
 }
 

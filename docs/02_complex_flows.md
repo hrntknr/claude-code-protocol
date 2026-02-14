@@ -23,20 +23,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "bypassPermissions",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -50,14 +57,17 @@
         "text": "Done. The output was: combined-test"
       }
     ],
-    "id": "",
-    "model": "",
+    "id": "msg_stub_001",
+    "model": "claude-sonnet-4-5-20250929",
     "role": "assistant",
     "type": "message",
-    "usage": {}
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
   },
-  "session_id": "",
-  "uuid": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
@@ -65,16 +75,24 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
   "result": "Done. The output was: combined-test",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 </table>
@@ -96,20 +114,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "bypassPermissions",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -123,14 +148,17 @@
         "text": "Both commands ran: parallel-one and parallel-two"
       }
     ],
-    "id": "",
-    "model": "",
+    "id": "msg_stub_001",
+    "model": "claude-sonnet-4-5-20250929",
     "role": "assistant",
     "type": "message",
-    "usage": {}
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
   },
-  "session_id": "",
-  "uuid": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
@@ -138,16 +166,24 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
   "result": "Both commands ran: parallel-one and parallel-two",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 </table>
@@ -169,20 +205,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "bypassPermissions",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -196,14 +239,17 @@
         "text": "First answer."
       }
     ],
-    "id": "",
-    "model": "",
+    "id": "msg_stub_001",
+    "model": "claude-sonnet-4-5-20250929",
     "role": "assistant",
     "type": "message",
-    "usage": {}
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
   },
-  "session_id": "",
-  "uuid": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
@@ -211,16 +257,24 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
   "result": "First answer.",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>&lt;-</td><td><a href="../README.md#user">user</a></td><td><pre lang="json">
@@ -242,14 +296,17 @@
         "text": "Second answer."
       }
     ],
-    "id": "",
-    "model": "",
+    "id": "msg_stub_001",
+    "model": "claude-sonnet-4-5-20250929",
     "role": "assistant",
     "type": "message",
-    "usage": {}
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
   },
-  "session_id": "",
-  "uuid": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
@@ -257,16 +314,24 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
   "result": "Second answer.",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 </table>
@@ -288,20 +353,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "bypassPermissions",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -312,17 +384,20 @@
     "content": [
       {
         "type": "text",
-        "text": ""
+        "text": "This response was truncated because it hit the max"
       }
     ],
-    "id": "",
-    "model": "",
+    "id": "msg_stub_001",
+    "model": "claude-sonnet-4-5-20250929",
     "role": "assistant",
     "type": "message",
-    "usage": {}
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
   },
-  "session_id": "",
-  "uuid": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
@@ -330,17 +405,25 @@
   "type": "result",
   "subtype": "success",
   "is_error": true,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
-  "result": "",
-  "stop_reason": "",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
+  "result": "Hello!",
+  "stop_reason": "end_turn",
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 </table>
@@ -362,20 +445,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "bypassPermissions",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -389,14 +479,17 @@
         "text": "First paragraph."
       }
     ],
-    "id": "",
-    "model": "",
+    "id": "msg_stub_001",
+    "model": "claude-sonnet-4-5-20250929",
     "role": "assistant",
     "type": "message",
-    "usage": {}
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
   },
-  "session_id": "",
-  "uuid": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttext">assistant(text)</a></td><td><pre lang="json">
@@ -409,14 +502,17 @@
         "text": "Second paragraph."
       }
     ],
-    "id": "",
-    "model": "",
+    "id": "msg_stub_001",
+    "model": "claude-sonnet-4-5-20250929",
     "role": "assistant",
     "type": "message",
-    "usage": {}
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
   },
-  "session_id": "",
-  "uuid": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
@@ -424,16 +520,24 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
   "result": "Second paragraph.",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 </table>

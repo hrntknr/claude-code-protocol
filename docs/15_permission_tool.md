@@ -20,20 +20,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "default",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -44,32 +51,43 @@
     "content": [
       {
         "type": "tool_use",
-        "id": "",
+        "id": "toolu_stub_001",
         "name": "Bash",
-        "input": {}
+        "input": {
+          "command": "rm -f /tmp/ccprotocol_perm_test_file",
+          "description": "Remove test file"
+        }
       }
     ],
-    "id": "",
-    "model": "",
+    "id": "msg_stub_001",
+    "model": "claude-sonnet-4-5-20250929",
     "role": "assistant",
     "type": "message",
-    "usage": {}
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
   },
-  "session_id": "",
-  "uuid": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#control_request">control_request</a></td><td><pre lang="json">
 {
   "type": "control_request",
-  "request_id": "",
+  "request_id": "request-abc123",
   "request": {
     "subtype": "can_use_tool",
     "tool_name": "Bash",
-    "input": {},
-    "tool_use_id": "",
-    "permission_suggestions": [],
-    "blocked_path": ""
+    "input": {
+      "command": "rm -f /tmp/ccprotocol_perm_test_file",
+      "description": "Remove test file"
+    },
+    "tool_use_id": "toolu_stub_001",
+    "permission_suggestions": [
+      "allow:Bash(/tmp/*)"
+    ],
+    "blocked_path": "/tmp/ccprotocol_perm_test_file"
   }
 }
 </pre></td></tr>
@@ -99,14 +117,17 @@
         "text": "Command executed successfully."
       }
     ],
-    "id": "",
-    "model": "",
+    "id": "msg_stub_001",
+    "model": "claude-sonnet-4-5-20250929",
     "role": "assistant",
     "type": "message",
-    "usage": {}
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
   },
-  "session_id": "",
-  "uuid": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
@@ -114,16 +135,24 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
   "result": "Command executed successfully.",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 </table>
@@ -145,20 +174,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "default",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -169,32 +205,43 @@
     "content": [
       {
         "type": "tool_use",
-        "id": "",
+        "id": "toolu_stub_001",
         "name": "Bash",
-        "input": {}
+        "input": {
+          "command": "rm -rf /",
+          "description": "Dangerous command"
+        }
       }
     ],
-    "id": "",
-    "model": "",
+    "id": "msg_stub_001",
+    "model": "claude-sonnet-4-5-20250929",
     "role": "assistant",
     "type": "message",
-    "usage": {}
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
   },
-  "session_id": "",
-  "uuid": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#control_request">control_request</a></td><td><pre lang="json">
 {
   "type": "control_request",
-  "request_id": "",
+  "request_id": "request-abc123",
   "request": {
     "subtype": "can_use_tool",
     "tool_name": "Bash",
-    "input": {},
-    "tool_use_id": "",
-    "permission_suggestions": [],
-    "decision_reason": ""
+    "input": {
+      "command": "rm -rf /",
+      "description": "Dangerous command"
+    },
+    "tool_use_id": "toolu_stub_001",
+    "permission_suggestions": [
+      "allow:Bash(rm)"
+    ],
+    "decision_reason": "Command requires permissions"
   }
 }
 </pre></td></tr>
@@ -219,15 +266,17 @@
     "content": [
       {
         "type": "tool_result",
-        "tool_use_id": "",
-        "content": "",
+        "tool_use_id": "toolu_stub_001",
+        "content": "tool execution output",
         "is_error": true
       }
     ]
   },
-  "session_id": "",
-  "uuid": "",
-  "tool_use_result": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123",
+  "tool_use_result": {
+    "stdout": "command output"
+  }
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttext">assistant(text)</a></td><td><pre lang="json">
@@ -240,14 +289,17 @@
         "text": "I understand, I will not run that command."
       }
     ],
-    "id": "",
-    "model": "",
+    "id": "msg_stub_001",
+    "model": "claude-sonnet-4-5-20250929",
     "role": "assistant",
     "type": "message",
-    "usage": {}
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
   },
-  "session_id": "",
-  "uuid": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
@@ -255,22 +307,33 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
   "result": "I understand, I will not run that command.",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [
     {
       "tool_name": "Bash",
-      "tool_use_id": "",
-      "tool_input": {}
+      "tool_use_id": "toolu_stub_001",
+      "tool_input": {
+        "command": "rm -rf /",
+        "description": "Dangerous command"
+      }
     }
   ],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 </table>

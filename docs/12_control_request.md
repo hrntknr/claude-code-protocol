@@ -23,20 +23,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "bypassPermissions",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -45,16 +52,24 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
   "result": "Ready.",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>&lt;-</td><td><a href="../README.md#control_request">control_request</a></td><td><pre lang="json">
@@ -80,9 +95,11 @@
 {
   "type": "control_response",
   "response": {
-    "subtype": "",
-    "request_id": "",
-    "response": ""
+    "subtype": "success",
+    "request_id": "request-abc123",
+    "response": {
+      "mode": "plan"
+    }
   }
 }
 </pre></td></tr>
@@ -90,20 +107,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "plan",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -112,16 +136,24 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
-  "result": "",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
+  "result": "Hello!",
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 </table>
@@ -143,20 +175,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "bypassPermissions",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -165,16 +204,24 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
   "result": "Ready.",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>&lt;-</td><td><a href="../README.md#control_request">control_request</a></td><td><pre lang="json">
@@ -200,8 +247,8 @@
 {
   "type": "control_response",
   "response": {
-    "subtype": "",
-    "request_id": ""
+    "subtype": "success",
+    "request_id": "request-abc123"
   }
 }
 </pre></td></tr>
@@ -209,20 +256,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "bypassPermissions",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -231,16 +285,24 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
-  "result": "",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
+  "result": "Hello!",
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 </table>

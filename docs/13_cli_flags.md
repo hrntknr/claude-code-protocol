@@ -22,20 +22,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "bypassPermissions",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -46,8 +53,8 @@
     "role": "user",
     "content": "replay this message"
   },
-  "session_id": "",
-  "uuid": "",
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123",
   "isReplay": true
 }
 </pre></td></tr>
@@ -61,14 +68,17 @@
         "text": "Echoed!"
       }
     ],
-    "id": "",
-    "model": "",
+    "id": "msg_stub_001",
+    "model": "claude-sonnet-4-5-20250929",
     "role": "assistant",
     "type": "message",
-    "usage": {}
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
   },
-  "session_id": "",
-  "uuid": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
@@ -76,16 +86,24 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
   "result": "Echoed!",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 </table>
@@ -107,45 +125,73 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "bypassPermissions",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#stream_event">stream_event</a></td><td><pre lang="json">
 {
   "type": "stream_event",
-  "event": {},
-  "session_id": "",
-  "uuid": ""
+  "event": {
+    "delta": {
+      "text": "Hello",
+      "type": "text_delta"
+    },
+    "index": 0,
+    "type": "content_block_delta"
+  },
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#stream_event">stream_event</a></td><td><pre lang="json">
 {
   "type": "stream_event",
-  "event": {},
-  "session_id": "",
-  "uuid": ""
+  "event": {
+    "delta": {
+      "text": "Hello",
+      "type": "text_delta"
+    },
+    "index": 0,
+    "type": "content_block_delta"
+  },
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#stream_event">stream_event</a></td><td><pre lang="json">
 {
   "type": "stream_event",
-  "event": {},
-  "session_id": "",
-  "uuid": ""
+  "event": {
+    "delta": {
+      "text": "Hello",
+      "type": "text_delta"
+    },
+    "index": 0,
+    "type": "content_block_delta"
+  },
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttext">assistant(text)</a></td><td><pre lang="json">
@@ -158,38 +204,62 @@
         "text": "Streamed response."
       }
     ],
-    "id": "",
-    "model": "",
+    "id": "msg_stub_001",
+    "model": "claude-sonnet-4-5-20250929",
     "role": "assistant",
     "type": "message",
-    "usage": {}
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
   },
-  "session_id": "",
-  "uuid": ""
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#stream_event">stream_event</a></td><td><pre lang="json">
 {
   "type": "stream_event",
-  "event": {},
-  "session_id": "",
-  "uuid": ""
+  "event": {
+    "delta": {
+      "text": "Hello",
+      "type": "text_delta"
+    },
+    "index": 0,
+    "type": "content_block_delta"
+  },
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#stream_event">stream_event</a></td><td><pre lang="json">
 {
   "type": "stream_event",
-  "event": {},
-  "session_id": "",
-  "uuid": ""
+  "event": {
+    "delta": {
+      "text": "Hello",
+      "type": "text_delta"
+    },
+    "index": 0,
+    "type": "content_block_delta"
+  },
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#stream_event">stream_event</a></td><td><pre lang="json">
 {
   "type": "stream_event",
-  "event": {},
-  "session_id": "",
-  "uuid": ""
+  "event": {
+    "delta": {
+      "text": "Hello",
+      "type": "text_delta"
+    },
+    "index": 0,
+    "type": "content_block_delta"
+  },
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#resultsuccess">result/success</a></td><td><pre lang="json">
@@ -197,16 +267,24 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
   "result": "Streamed response.",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 </table>
@@ -228,20 +306,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "bypassPermissions",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -250,15 +335,23 @@
   "type": "result",
   "subtype": "error_max_turns",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "errors": []
 }
 </pre></td></tr>
@@ -281,20 +374,27 @@
 {
   "type": "system",
   "subtype": "init",
-  "cwd": "",
-  "session_id": "",
-  "tools": [],
+  "cwd": "/home/user/project",
+  "session_id": "session-abc123",
+  "tools": [
+    "Bash",
+    "Read",
+    "Write",
+    "Edit",
+    "Glob",
+    "Grep"
+  ],
   "mcp_servers": [],
-  "model": "",
+  "model": "claude-sonnet-4-5-20250929",
   "permissionMode": "bypassPermissions",
   "slash_commands": [],
-  "apiKeySource": "",
-  "claude_code_version": "",
-  "output_style": "",
+  "apiKeySource": "env_variable",
+  "claude_code_version": "2.1.0",
+  "output_style": "default",
   "agents": [],
   "skills": [],
   "plugins": [],
-  "uuid": "",
+  "uuid": "uuid-abc123",
   "fast_mode_state": "off"
 }
 </pre></td></tr>
@@ -303,16 +403,24 @@
   "type": "result",
   "subtype": "success",
   "is_error": false,
-  "duration_ms": 0,
-  "duration_api_ms": 0,
-  "num_turns": 0,
+  "duration_ms": 100,
+  "duration_api_ms": 50,
+  "num_turns": 1,
   "result": "Hello",
-  "session_id": "",
-  "total_cost_usd": 0,
-  "usage": {},
-  "modelUsage": {},
+  "session_id": "session-abc123",
+  "total_cost_usd": 0.001,
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1
+  },
+  "modelUsage": {
+    "claude-sonnet-4-5-20250929": {
+      "input_tokens": 10,
+      "output_tokens": 1
+    }
+  },
   "permission_denials": [],
-  "uuid": ""
+  "uuid": "uuid-abc123"
 }
 </pre></td></tr>
 </table>

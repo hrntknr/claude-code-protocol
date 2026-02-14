@@ -180,7 +180,7 @@ func TestToolUseExitPlanMode(t *testing.T) {
 	// No system/status message is emitted (unlike EnterPlanMode).
 	output := s.Read()
 	utils.AssertOutput(t, output,
-		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionBypassPermissions }).Ignore("permissionMode"),
+		defaultInitPattern().Ignore("permissionMode"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{

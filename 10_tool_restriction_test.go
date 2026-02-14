@@ -42,7 +42,7 @@ func TestAllowedToolsRestriction(t *testing.T) {
 	// This means --allowedTools is overridden by --dangerously-skip-permissions.
 	output := s.Read()
 	utils.AssertOutput(t, output,
-		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionBypassPermissions }).Ignore("permissionMode"),
+		defaultInitPattern().Ignore("permissionMode"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{
@@ -127,7 +127,7 @@ func TestDisallowedToolsRestriction(t *testing.T) {
 	}
 
 	utils.AssertOutput(t, output,
-		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionBypassPermissions }).Ignore("permissionMode"),
+		defaultInitPattern().Ignore("permissionMode"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{

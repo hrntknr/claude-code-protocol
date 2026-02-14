@@ -258,7 +258,7 @@ func TestAskUserQuestionDisallowed(t *testing.T) {
 	}
 
 	utils.AssertOutput(t, output,
-		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionBypassPermissions }).Ignore("permissionMode"),
+		defaultInitPattern().Ignore("permissionMode"),
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
 				ToolUseBlock{

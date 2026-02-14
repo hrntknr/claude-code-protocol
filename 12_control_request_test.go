@@ -54,7 +54,12 @@ func TestControlSetPermissionMode(t *testing.T) {
 	// message normally. The result text matches the last response from the stub.
 	utils.AssertOutput(t, s.Read(),
 		// control_response with success
-		defaultControlResponsePattern(),
+		// CLI >= 2.1.41 includes a nested "response" field with the new mode.
+		defaultControlResponsePattern(func(m *ControlResponseMessage) {
+			if utils.CLIVersionAtLeast(utils.CLIVersion(), "2.1.41") {
+				m.Response.Response = utils.AnyString
+			}
+		}),
 		// New system/init with updated permission mode
 		defaultInitPattern(func(m *SystemInitMessage) { m.PermissionMode = PermissionPlan }),
 		defaultResultPattern(func(m *ResultSuccessMessage) { m.Result = utils.AnyString }),

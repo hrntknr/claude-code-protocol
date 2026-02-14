@@ -81,7 +81,8 @@
   "type": "control_response",
   "response": {
     "subtype": "",
-    "request_id": ""
+    "request_id": "",
+    "response": ""
   }
 }
 </pre></td></tr>

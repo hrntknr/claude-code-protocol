@@ -759,27 +759,6 @@
   "uuid": "uuid-abc123"
 }
 </pre></td></tr>
-<tr><td>-&gt;</td><td><a href="../README.md#usertool_result">user(tool_result)</a></td><td><pre lang="json">
-{
-  "type": "user",
-  "message": {
-    "role": "user",
-    "content": [
-      {
-        "type": "tool_result",
-        "tool_use_id": "toolu_stub_001",
-        "content": "tool execution output",
-        "is_error": true
-      }
-    ]
-  },
-  "session_id": "session-abc123",
-  "uuid": "uuid-abc123",
-  "tool_use_result": {
-    "stdout": "command output"
-  }
-}
-</pre></td></tr>
 <tr><td>-&gt;</td><td><a href="../README.md#assistanttool_use">assistant(tool_use:Bash)</a></td><td><pre lang="json">
 {
   "type": "assistant",
@@ -819,6 +798,26 @@
         "tool_use_id": "toolu_stub_001",
         "content": "tool execution output",
         "is_error": true
+      }
+    ]
+  },
+  "session_id": "session-abc123",
+  "uuid": "uuid-abc123",
+  "tool_use_result": {
+    "stdout": "command output"
+  }
+}
+</pre></td></tr>
+<tr><td>-&gt;</td><td><a href="../README.md#usertool_result">user(tool_result)</a></td><td><pre lang="json">
+{
+  "type": "user",
+  "message": {
+    "role": "user",
+    "content": [
+      {
+        "type": "tool_result",
+        "tool_use_id": "toolu_stub_001",
+        "content": "tool execution output"
       }
     ]
   },

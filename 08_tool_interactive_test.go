@@ -407,8 +407,8 @@ func TestAskUserQuestionMultipleDenials(t *testing.T) {
 // AskUserQuestion and Bash in parallel: AskUserQuestion denied, Bash succeeds
 func TestAskUserQuestionWithParallelTool(t *testing.T) {
 	t.Parallel()
-	if !utils.CLIVersionAtLeast(utils.CLIVersion(), "2.1.38") {
-		t.Skip("parallel tool_use splitting behavior changed in 2.1.38")
+	if !utils.CLIVersionAtLeast(utils.CLIVersion(), "2.1.63") {
+		t.Skip("parallel tool_use output order changed in 2.1.63")
 	}
 	stub := &utils.StubAPIServer{Responses: [][]utils.SSEEvent{
 		// Request 1: Parallel tool_use — AskUserQuestion + Bash in one message

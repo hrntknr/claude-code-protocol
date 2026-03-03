@@ -302,9 +302,9 @@ type ThinkingBlock struct {
 // ToolResultBlock is a tool execution result content block.
 type ToolResultBlock struct {
 	ContentBlockBase
-	ToolUseID string `json:"tool_use_id"`        // Corresponding tool use ID
-	Content   any    `json:"content"`            // Execution result (array or string)
-	IsError   bool   `json:"is_error,omitempty"` // true on error
+	ToolUseID string `json:"tool_use_id"` // Corresponding tool use ID
+	Content   any    `json:"content"`     // Execution result (array or string)
+	IsError   bool   `json:"is_error"`    // true on error
 }
 
 // ---------------------------------------------------------------------------

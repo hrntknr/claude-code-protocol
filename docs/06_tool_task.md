@@ -85,8 +85,7 @@
       {
         "type": "tool_result",
         "tool_use_id": "toolu_stub_001",
-        "content": "tool execution output",
-        "is_error": false
+        "content": "tool execution output"
       }
     ]
   },
@@ -226,8 +225,7 @@
       {
         "type": "tool_result",
         "tool_use_id": "toolu_stub_001",
-        "content": "tool execution output",
-        "is_error": false
+        "content": "tool execution output"
       }
     ]
   },
@@ -367,8 +365,7 @@
       {
         "type": "tool_result",
         "tool_use_id": "toolu_stub_001",
-        "content": "tool execution output",
-        "is_error": false
+        "content": "tool execution output"
       }
     ]
   },
@@ -508,8 +505,7 @@
       {
         "type": "tool_result",
         "tool_use_id": "toolu_stub_001",
-        "content": "tool execution output",
-        "is_error": false
+        "content": "tool execution output"
       }
     ]
   },

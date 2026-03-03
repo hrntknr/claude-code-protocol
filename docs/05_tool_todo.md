@@ -90,6 +90,7 @@
     }
   },
   "permission_denials": [],
+  "fast_mode_state": "off",
   "uuid": "uuid-abc123"
 }
 </pre></td></tr>

@@ -242,6 +242,7 @@ permission_denials is always present; when empty, it is an empty array [].
   "usage": {},
   "modelUsage": {},
   "permission_denials": [],
+  "fast_mode_state": "off",
   "uuid": "xxx"
 }
 ```
@@ -264,6 +265,7 @@ In addition to the same common fields as result/success, the errors array contai
   "usage": {},
   "modelUsage": {},
   "permission_denials": [],
+  "fast_mode_state": "off",
   "uuid": "xxx",
   "errors": [
     "error message"
@@ -290,6 +292,7 @@ The subtype is "error_max_turns" and errors is an empty array.
   "usage": {},
   "modelUsage": {},
   "permission_denials": [],
+  "fast_mode_state": "off",
   "uuid": "xxx",
   "errors": []
 }

@@ -339,6 +339,13 @@ func jsonMatch(actual, expect any, ignorePaths map[string]bool, path string) boo
 		}
 		for k, av := range a {
 			if _, ok := e[k]; !ok {
+				childPath := k
+				if path != "" {
+					childPath = path + "." + k
+				}
+				if isIgnored(ignorePaths, childPath) {
+					continue
+				}
 				if av != nil {
 					return false
 				}

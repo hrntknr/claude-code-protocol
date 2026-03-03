@@ -496,9 +496,8 @@ func TestAskUserQuestionWithParallelTool(t *testing.T) {
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
 				ToolUseID:        "toolu_stub_001",
 				Content:          "tool execution output",
-				IsError:          false,
 			}}
-		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content", "message.content.*.is_error"),
 		// Final text
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{

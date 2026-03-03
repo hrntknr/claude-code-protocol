@@ -453,11 +453,10 @@ func TestAskUserQuestionWithParallelTool(t *testing.T) {
 		Message:     UserTextBody{Role: RoleUser, Content: "ask a question and run a command"},
 	}))
 	// Observed: When AskUserQuestion and Bash are in the same parallel tool_use,
-	// the CLI splits them into sequential processing. AskUserQuestion is emitted
-	// first as a single-tool assistant message → denied tool_result. Then Bash
-	// is emitted as a separate assistant message → tool_result with is_error:true
-	// containing "Sibling tool call errored" (because a sibling tool errored).
-	// Only AskUserQuestion appears in permission_denials.
+	// the CLI splits them into separate assistant messages, emitting both assistant
+	// messages first, then both tool results. AskUserQuestion is denied (is_error:true),
+	// Bash runs successfully (is_error:false). Only AskUserQuestion appears in
+	// permission_denials.
 	utils.AssertOutput(t, s.Read(),
 		defaultInitPattern(),
 		// AskUserQuestion tool_use (emitted as its own assistant message)
@@ -471,15 +470,6 @@ func TestAskUserQuestionWithParallelTool(t *testing.T) {
 				},
 			}
 		}).Ignore("message.content.*.id", "message.content.*.input"),
-		// AskUserQuestion denied
-		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
-			m.Message.Content = []ToolResultBlock{{
-				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-				ToolUseID:        "toolu_stub_001",
-				Content:          "tool execution output",
-				IsError:          true,
-			}}
-		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		// Bash tool_use (emitted as a separate assistant message)
 		defaultAssistantPattern(func(m *AssistantMessage) {
 			m.Message.Content = []IsContentBlock{
@@ -491,13 +481,22 @@ func TestAskUserQuestionWithParallelTool(t *testing.T) {
 				},
 			}
 		}).Ignore("message.content.*.id", "message.content.*.input"),
-		// Bash tool_result — also errored due to sibling failure
+		// AskUserQuestion denied
 		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
 			m.Message.Content = []ToolResultBlock{{
 				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
 				ToolUseID:        "toolu_stub_001",
 				Content:          "tool execution output",
 				IsError:          true,
+			}}
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
+		// Bash tool_result — succeeded
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
+				IsError:          false,
 			}}
 		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
 		// Final text

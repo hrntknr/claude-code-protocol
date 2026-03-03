@@ -232,7 +232,7 @@ type UserToolResultMessage struct {
 // permission_denials is always present; when empty, it is an empty array [].
 //
 // ```json
-// {"type":"result","subtype":"success","is_error":false,"duration_ms":55,"duration_api_ms":12,"num_turns":1,"result":"Hello!","stop_reason":null,"session_id":"abc","total_cost_usd":0.00055,"usage":{},"modelUsage":{},"permission_denials":[],"uuid":"xxx"}
+// {"type":"result","subtype":"success","is_error":false,"duration_ms":55,"duration_api_ms":12,"num_turns":1,"result":"Hello!","stop_reason":null,"session_id":"abc","total_cost_usd":0.00055,"usage":{},"modelUsage":{},"permission_denials":[],"fast_mode_state":"off","uuid":"xxx"}
 // ```
 type ResultSuccessMessage struct {
 	MessageBase
@@ -247,6 +247,7 @@ type ResultSuccessMessage struct {
 	Usage             map[string]any     `json:"usage"`                 // Token usage
 	ModelUsage        map[string]any     `json:"modelUsage"`            // Per-model usage
 	PermissionDenials []PermissionDenial `json:"permission_denials"`    // Permission denials (always present)
+	FastModeState     FastModeState      `json:"fast_mode_state"`       // Fast mode state ("off", "on", "cooldown")
 	UUID              string             `json:"uuid"`                  // Message UUID
 }
 
@@ -255,7 +256,7 @@ type ResultSuccessMessage struct {
 // In addition to the same common fields as result/success, the errors array contains error message strings.
 //
 // ```json
-// {"type":"result","subtype":"error_during_execution","is_error":false,"duration_ms":52,"duration_api_ms":18,"num_turns":1,"session_id":"abc","total_cost_usd":0,"usage":{},"modelUsage":{},"permission_denials":[],"uuid":"xxx","errors":["error message"]}
+// {"type":"result","subtype":"error_during_execution","is_error":false,"duration_ms":52,"duration_api_ms":18,"num_turns":1,"session_id":"abc","total_cost_usd":0,"usage":{},"modelUsage":{},"permission_denials":[],"fast_mode_state":"off","uuid":"xxx","errors":["error message"]}
 // ```
 type ResultErrorMessage struct {
 	MessageBase
@@ -268,6 +269,7 @@ type ResultErrorMessage struct {
 	Usage             map[string]any     `json:"usage"`              // Token usage
 	ModelUsage        map[string]any     `json:"modelUsage"`         // Per-model usage
 	PermissionDenials []PermissionDenial `json:"permission_denials"` // Permission denials (always present)
+	FastModeState     FastModeState      `json:"fast_mode_state"`    // Fast mode state ("off", "on", "cooldown")
 	UUID              string             `json:"uuid"`               // Message UUID
 	Errors            []string           `json:"errors"`             // Error array
 }
@@ -345,7 +347,7 @@ type PermissionDenial struct {
 // The subtype is "error_max_turns" and errors is an empty array.
 //
 // ```json
-// {"type":"result","subtype":"error_max_turns","is_error":false,"duration_ms":184,"duration_api_ms":30,"num_turns":2,"stop_reason":null,"session_id":"abc","total_cost_usd":0.00055,"usage":{},"modelUsage":{},"permission_denials":[],"uuid":"xxx","errors":[]}
+// {"type":"result","subtype":"error_max_turns","is_error":false,"duration_ms":184,"duration_api_ms":30,"num_turns":2,"stop_reason":null,"session_id":"abc","total_cost_usd":0.00055,"usage":{},"modelUsage":{},"permission_denials":[],"fast_mode_state":"off","uuid":"xxx","errors":[]}
 // ```
 type ResultMaxTurnsMessage struct {
 	MessageBase
@@ -358,6 +360,7 @@ type ResultMaxTurnsMessage struct {
 	Usage             map[string]any     `json:"usage"`              // Token usage
 	ModelUsage        map[string]any     `json:"modelUsage"`         // Per-model usage
 	PermissionDenials []PermissionDenial `json:"permission_denials"` // Permission denials (always present)
+	FastModeState     FastModeState      `json:"fast_mode_state"`    // Fast mode state ("off", "on", "cooldown")
 	UUID              string             `json:"uuid"`               // Message UUID
 	Errors            []string           `json:"errors"`             // Error array (empty)
 }

@@ -13,7 +13,10 @@ import (
 // that includes the field. Used by MustJSONVersioned to omit version-gated
 // fields when running against older CLIs.
 var FieldMinVersion = map[string]string{
-	"SystemInitMessage.fast_mode_state": "2.1.38",
+	"SystemInitMessage.fast_mode_state":     "2.1.38",
+	"ResultSuccessMessage.fast_mode_state":  "2.1.63",
+	"ResultErrorMessage.fast_mode_state":    "2.1.63",
+	"ResultMaxTurnsMessage.fast_mode_state": "2.1.63",
 }
 
 // MustJSONVersioned marshals v to JSON and removes fields whose CLI version

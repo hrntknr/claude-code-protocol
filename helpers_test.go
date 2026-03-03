@@ -71,13 +71,14 @@ func defaultResultPattern(opts ...func(*ResultSuccessMessage)) utils.Pattern {
 		Usage:             map[string]any{"input_tokens": float64(10), "output_tokens": float64(1)},
 		ModelUsage:        map[string]any{"claude-sonnet-4-5-20250929": map[string]any{"input_tokens": float64(10), "output_tokens": float64(1)}},
 		PermissionDenials: []PermissionDenial{},
+		FastModeState:     FastModeOff,
 	}
 	for _, o := range opts {
 		o(&m)
 	}
 	return utils.NewPattern(utils.MustJSONVersioned(m),
 		"duration_ms", "duration_api_ms", "num_turns", "total_cost_usd",
-		"session_id", "uuid", "usage", "modelUsage", "result",
+		"session_id", "uuid", "usage", "modelUsage", "result", "fast_mode_state",
 	)
 }
 
@@ -111,13 +112,14 @@ func defaultResultErrorPattern(opts ...func(*ResultErrorMessage)) utils.Pattern 
 		Usage:             map[string]any{"input_tokens": float64(10), "output_tokens": float64(1)},
 		ModelUsage:        map[string]any{"claude-sonnet-4-5-20250929": map[string]any{"input_tokens": float64(10), "output_tokens": float64(1)}},
 		PermissionDenials: []PermissionDenial{},
+		FastModeState:     FastModeOff,
 	}
 	for _, o := range opts {
 		o(&m)
 	}
 	return utils.NewPattern(utils.MustJSONVersioned(m),
 		"duration_ms", "duration_api_ms", "num_turns", "total_cost_usd",
-		"session_id", "uuid", "usage", "modelUsage",
+		"session_id", "uuid", "usage", "modelUsage", "fast_mode_state",
 	)
 }
 
@@ -134,6 +136,7 @@ func defaultResultMaxTurnsPattern(opts ...func(*ResultMaxTurnsMessage)) utils.Pa
 		Usage:             map[string]any{"input_tokens": float64(10), "output_tokens": float64(1)},
 		ModelUsage:        map[string]any{"claude-sonnet-4-5-20250929": map[string]any{"input_tokens": float64(10), "output_tokens": float64(1)}},
 		PermissionDenials: []PermissionDenial{},
+		FastModeState:     FastModeOff,
 		Errors:            []string{},
 	}
 	for _, o := range opts {
@@ -141,7 +144,7 @@ func defaultResultMaxTurnsPattern(opts ...func(*ResultMaxTurnsMessage)) utils.Pa
 	}
 	return utils.NewPattern(utils.MustJSONVersioned(m),
 		"duration_ms", "duration_api_ms", "num_turns", "total_cost_usd",
-		"session_id", "uuid", "usage", "modelUsage",
+		"session_id", "uuid", "usage", "modelUsage", "fast_mode_state",
 	)
 }
 

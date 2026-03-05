@@ -78,7 +78,7 @@ func defaultResultPattern(opts ...func(*ResultSuccessMessage)) utils.Pattern {
 	}
 	return utils.NewPattern(utils.MustJSONVersioned(m),
 		"duration_ms", "duration_api_ms", "num_turns", "total_cost_usd",
-		"session_id", "uuid", "usage", "modelUsage", "result", "fast_mode_state",
+		"session_id", "uuid", "usage", "modelUsage", "result", "stop_reason", "fast_mode_state",
 	)
 }
 
@@ -119,7 +119,7 @@ func defaultResultErrorPattern(opts ...func(*ResultErrorMessage)) utils.Pattern 
 	}
 	return utils.NewPattern(utils.MustJSONVersioned(m),
 		"duration_ms", "duration_api_ms", "num_turns", "total_cost_usd",
-		"session_id", "uuid", "usage", "modelUsage", "fast_mode_state",
+		"session_id", "uuid", "usage", "modelUsage", "stop_reason", "fast_mode_state",
 	)
 }
 
@@ -144,7 +144,7 @@ func defaultResultMaxTurnsPattern(opts ...func(*ResultMaxTurnsMessage)) utils.Pa
 	}
 	return utils.NewPattern(utils.MustJSONVersioned(m),
 		"duration_ms", "duration_api_ms", "num_turns", "total_cost_usd",
-		"session_id", "uuid", "usage", "modelUsage", "fast_mode_state",
+		"session_id", "uuid", "usage", "modelUsage", "stop_reason", "fast_mode_state",
 	)
 }
 

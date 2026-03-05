@@ -452,131 +452,49 @@ func TestAskUserQuestionWithParallelTool(t *testing.T) {
 		MessageBase: MessageBase{Type: TypeUser},
 		Message:     UserTextBody{Role: RoleUser, Content: "ask a question and run a command"},
 	}))
-	output := s.Read()
-	if utils.CLIVersionAtLeast(utils.CLIVersion(), "2.1.69") {
-		// Observed (>= 2.1.69): Parallel tool calls are emitted interleaved
-		// (assistant+result pairs). When AskUserQuestion is denied, the parallel
-		// Bash tool is also cancelled with is_error:true.
-		utils.AssertOutput(t, output,
-			defaultInitPattern(),
-			// AskUserQuestion tool_use
-			defaultAssistantPattern(func(m *AssistantMessage) {
-				m.Message.Content = []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               "toolu_stub_001",
-						Name:             "AskUserQuestion",
-						Input:            map[string]any{"command": "echo hello", "description": "Example"},
-					},
-				}
-			}).Ignore("message.content.*.id", "message.content.*.input"),
-			// AskUserQuestion denied
-			defaultUserToolResultPattern(func(m *UserToolResultMessage) {
-				m.Message.Content = []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        "toolu_stub_001",
-					Content:          "tool execution output",
-					IsError:          true,
-				}}
-			}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
-			// Bash tool_use
-			defaultAssistantPattern(func(m *AssistantMessage) {
-				m.Message.Content = []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               "toolu_stub_001",
-						Name:             "Bash",
-						Input:            map[string]any{"command": "echo hello", "description": "Example"},
-					},
-				}
-			}).Ignore("message.content.*.id", "message.content.*.input"),
-			// Bash tool_result — cancelled due to AskUserQuestion error
-			defaultUserToolResultPattern(func(m *UserToolResultMessage) {
-				m.Message.Content = []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        "toolu_stub_001",
-					Content:          "tool execution output",
-					IsError:          true,
-				}}
-			}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
-			// Final text
-			defaultAssistantPattern(func(m *AssistantMessage) {
-				m.Message.Content = []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Bash succeeded, question was denied.",
-					},
-				}
-			}),
-			defaultResultPattern(func(m *ResultSuccessMessage) {
-				m.PermissionDenials = []PermissionDenial{{
-					ToolName:  "AskUserQuestion",
-					ToolUseID: "toolu_stub_001",
-					ToolInput: map[string]any{"key": "value"},
-				}}
-			}).Ignore("permission_denials.*.tool_use_id", "permission_denials.*.tool_input"),
-		)
-	} else {
-		// Observed (2.1.63–2.1.68): Both assistant messages are emitted first,
-		// then both tool results. AskUserQuestion is denied (is_error:true),
-		// Bash runs successfully (is_error:false).
-		utils.AssertOutput(t, output,
-			defaultInitPattern(),
-			// AskUserQuestion tool_use (emitted as its own assistant message)
-			defaultAssistantPattern(func(m *AssistantMessage) {
-				m.Message.Content = []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               "toolu_stub_001",
-						Name:             "AskUserQuestion",
-						Input:            map[string]any{"command": "echo hello", "description": "Example"},
-					},
-				}
-			}).Ignore("message.content.*.id", "message.content.*.input"),
-			// Bash tool_use (emitted as a separate assistant message)
-			defaultAssistantPattern(func(m *AssistantMessage) {
-				m.Message.Content = []IsContentBlock{
-					ToolUseBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
-						ID:               "toolu_stub_001",
-						Name:             "Bash",
-						Input:            map[string]any{"command": "echo hello", "description": "Example"},
-					},
-				}
-			}).Ignore("message.content.*.id", "message.content.*.input"),
-			// AskUserQuestion denied
-			defaultUserToolResultPattern(func(m *UserToolResultMessage) {
-				m.Message.Content = []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        "toolu_stub_001",
-					Content:          "tool execution output",
-					IsError:          true,
-				}}
-			}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
-			// Bash tool_result — succeeded
-			defaultUserToolResultPattern(func(m *UserToolResultMessage) {
-				m.Message.Content = []ToolResultBlock{{
-					ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
-					ToolUseID:        "toolu_stub_001",
-					Content:          "tool execution output",
-				}}
-			}).Ignore("message.content.*.tool_use_id", "message.content.*.content", "message.content.*.is_error"),
-			// Final text
-			defaultAssistantPattern(func(m *AssistantMessage) {
-				m.Message.Content = []IsContentBlock{
-					TextBlock{
-						ContentBlockBase: ContentBlockBase{Type: BlockText},
-						Text:             "Bash succeeded, question was denied.",
-					},
-				}
-			}),
-			defaultResultPattern(func(m *ResultSuccessMessage) {
-				m.PermissionDenials = []PermissionDenial{{
-					ToolName:  "AskUserQuestion",
-					ToolUseID: "toolu_stub_001",
-					ToolInput: map[string]any{"key": "value"},
-				}}
-			}).Ignore("permission_denials.*.tool_use_id", "permission_denials.*.tool_input"),
-		)
-	}
+	// Observed: When AskUserQuestion and Bash are in the same parallel tool_use,
+	// the CLI splits them into separate assistant messages. AskUserQuestion is
+	// denied (is_error:true). The ordering of assistant/result messages and Bash
+	// behavior varies across versions (batched vs interleaved, Bash may succeed
+	// or be cancelled). We assert the deterministic parts: AskUserQuestion
+	// tool_use, its denial, the final text, and the result with permission_denials.
+	utils.AssertOutput(t, s.Read(),
+		defaultInitPattern(),
+		// AskUserQuestion tool_use
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				ToolUseBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockToolUse},
+					ID:               "toolu_stub_001",
+					Name:             "AskUserQuestion",
+					Input:            map[string]any{"command": "echo hello", "description": "Example"},
+				},
+			}
+		}).Ignore("message.content.*.id", "message.content.*.input"),
+		// AskUserQuestion denied
+		defaultUserToolResultPattern(func(m *UserToolResultMessage) {
+			m.Message.Content = []ToolResultBlock{{
+				ContentBlockBase: ContentBlockBase{Type: BlockToolResult},
+				ToolUseID:        "toolu_stub_001",
+				Content:          "tool execution output",
+				IsError:          true,
+			}}
+		}).Ignore("message.content.*.tool_use_id", "message.content.*.content"),
+		// Final text
+		defaultAssistantPattern(func(m *AssistantMessage) {
+			m.Message.Content = []IsContentBlock{
+				TextBlock{
+					ContentBlockBase: ContentBlockBase{Type: BlockText},
+					Text:             "Bash succeeded, question was denied.",
+				},
+			}
+		}),
+		defaultResultPattern(func(m *ResultSuccessMessage) {
+			m.PermissionDenials = []PermissionDenial{{
+				ToolName:  "AskUserQuestion",
+				ToolUseID: "toolu_stub_001",
+				ToolInput: map[string]any{"key": "value"},
+			}}
+		}).Ignore("permission_denials.*.tool_use_id", "permission_denials.*.tool_input"),
+	)
 }
